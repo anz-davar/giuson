@@ -3,6 +3,8 @@ from flask_jwt_extended import JWTManager
 from db import db
 from config import Config
 import os
+from flask_cors import CORS
+
 from models import User, Volunteer, Resume, Commander, HR, Job, JobQuestion, JobApplication, ApplicationAnswer, Interview
 
 
@@ -13,6 +15,8 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     jwt = JWTManager(app)
+    # CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:4200"]}}, supports_credentials=True)
 
     # Register blueprints
     from controllers.auth_controller import auth_bp
