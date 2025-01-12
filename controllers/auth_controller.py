@@ -4,18 +4,6 @@ from services.auth_service import AuthService
 auth_bp = Blueprint('auth', __name__)
 
 
-# @auth_bp.route('/login', methods=['POST'])
-# def login():
-#     data = request.get_json()
-#     token, role = AuthService.login(data['email'], data['password'])
-#
-#     if token:
-#         return jsonify({
-#             'access_token': token,
-#             'role': role
-#         }), 200
-#     return jsonify({'message': 'Invalid credentials'}), 401
-
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
