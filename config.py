@@ -12,6 +12,6 @@ class Config:
     db_path = os.path.join(os.getcwd(), 'volunteer_system.db')
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{db_path}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    # JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'dev-secret-key')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'dev-secret-key')
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key' # Use SECRET_KEY for JWT
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
