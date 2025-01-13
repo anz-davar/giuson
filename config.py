@@ -15,3 +15,10 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'dev-secret-key')
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key' # Use SECRET_KEY for JWT
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
+
+    # Add these lines
+    JWT_TOKEN_LOCATION = ['headers']
+    JWT_HEADER_NAME = 'Authorization'
+    JWT_HEADER_TYPE = 'Bearer'
+    JSON_SORT_KEYS = False  # Sometimes helps with Windows encoding issues
+    PROPAGATE_EXCEPTIONS = True  # This will help you see the actual error

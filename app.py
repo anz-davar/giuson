@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from db import db
 from config import Config
@@ -17,6 +17,20 @@ def create_app():
     jwt = JWTManager(app)
     # CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
     CORS(app, resources={r"/api/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:4200"]}}, supports_credentials=True)
+
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        return jsonify({
+            'message': 'Invalid token',
+            'error': str(error)
+        }), 422
+
+    @jwt.unauthorized_loader
+    def unauthorized_callback(error):
+        return jsonify({
+            'message': 'No token provided',
+            'error': str(error)
+        }), 401
 
     # Register blueprints
     from controllers.auth_controller import auth_bp
