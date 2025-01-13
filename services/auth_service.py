@@ -15,21 +15,11 @@ class AuthService:
             return access_token, user.role
         return None, None
 
-    # @staticmethod
-    # def generate_token(user):
-    #     payload = {
-    #         'user_id': user.id,
-    #         'role': user.role,
-    #         'exp': datetime.utcnow() + timedelta(hours=24)
-    #     }
-    #     token = jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
-    #     return token
-
     @staticmethod
     def generate_token(user):
         # Create a token with user ID as the 'sub' claim
         token = create_access_token(
-            identity=user.id,  # This sets the 'sub' claim
+            identity=str(user.id),  # This sets the 'sub' claim
             additional_claims={"role": user.role}  # Adds the 'role' as a custom claim
         )
         return token
