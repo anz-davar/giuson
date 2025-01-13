@@ -20,5 +20,7 @@ class Config:
     JWT_TOKEN_LOCATION = ['headers']
     JWT_HEADER_NAME = 'Authorization'
     JWT_HEADER_TYPE = 'Bearer'
+    JWT_ALGORITHM = 'HS256'  # Explicitly set the algorithm
+    JSON_AS_ASCII = False  #
     JSON_SORT_KEYS = False  # Sometimes helps with Windows encoding issues
     PROPAGATE_EXCEPTIONS = True  # This will help you see the actual error
