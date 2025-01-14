@@ -74,10 +74,8 @@ def get_job_applications(job_id):
 
     applications = CommanderService.get_job_applications(job_id, current_user.commander.id)
     return jsonify([{
-        'id': app.id,
-        'volunteer_name': app.volunteer.full_name,
-        'status': app.status,
-        'application_date': app.application_date.isoformat()
+        'candidateUserId': app.volunteer.user_id,
+        'status': app.status.value
     } for app in applications]), 200
 
 
