@@ -57,8 +57,8 @@ def calculate_age(born):
 def get_volunteers():
     """Get all volunteers"""
     current_user = User.query.get(get_jwt_identity())
-    # if current_user.role != 'hr':
-    #     return jsonify({'message': 'Unauthorized'}), 403
+    if current_user.role != 'hr':
+        return jsonify({'message': 'Unauthorized'}), 403
 
     volunteers = HRService.get_all_volunteers()
     # return jsonify([{
@@ -74,7 +74,6 @@ def get_volunteers():
         'fullName': v.user.full_name,
         'idNumber': v.national_id,  # Assuming national_id is the same as idNumber
         'dateOfBirth': v.date_of_birth.strftime('%Y-%m-%d') if v.date_of_birth else None,  # Format dateOfBirth
-        # 'dateOfBirth': (datetime.fromtimestamp(v.date_of_birth / 1000).strftime('%Y-%m-%d')) if v.date_of_birth else None, #Convert from timestamp
         'age': calculate_age(v.date_of_birth) if v.date_of_birth else None,  # Function to calculate age (optional)
         'gender': v.gender.value if v.gender else None,  # Handle potential null values
         'profile': v.profile,
@@ -103,15 +102,31 @@ def get_volunteer(volunteer_id):
         return jsonify({'message': 'Unauthorized'}), 403
 
     volunteer = HRService.get_volunteer_by_id(volunteer_id)
-    return jsonify({
+    payload = {
         'id': volunteer.id,
-        'full_name': volunteer.full_name,
+        'fullName': volunteer.full_name,
+        'idNumber': volunteer.national_id,  # Assuming national_id is the same as idNumber
+        'dateOfBirth': volunteer.date_of_birth.strftime('%Y-%m-%d') if volunteer.date_of_birth else None,
+        # Format dateOfBirth
+        'age': calculate_age(volunteer.date_of_birth) if volunteer.date_of_birth else None,
+        # Function to calculate age (optional)
+        'gender': volunteer.gender.value if volunteer.gender else None,  # Handle potential null values
+        'profile': volunteer.profile,
+        'phone': volunteer.user.phone,
         'email': volunteer.user.email,
-        'phone': volunteer.phone,
+        'address': volunteer.address,
+        'experience': volunteer.experience,
         'education': volunteer.education,
-        'primary_profession': volunteer.primary_profession,
-        'area_of_interest': volunteer.area_of_interest
-    }), 200
+        'courses': volunteer.courses,
+        'languages': volunteer.languages,  # Function to extract languages (optional)
+        'interests': volunteer.interests,
+        'personalSummary': volunteer.personal_summary,
+        'jobStatuses': {str(job_app.job_id): job_app.status.value
+                        for job_app in volunteer.applications},  # Map job application status
+        'imageUrl': volunteer.user.image_url if volunteer.user.image_url else None  # Handle potential null values
+    }
+
+    return jsonify(payload), 200
 
 
 @hr_bp.route('/jobs', methods=['GET'])
