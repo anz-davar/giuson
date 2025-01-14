@@ -1,5 +1,5 @@
 from models.commander import Commander
-from models.job import Job, JobQuestion
+from models.job import Job, JobQuestion, JobStatus
 from models.interview import Interview
 from models.application import JobApplication
 from db import db
@@ -7,6 +7,7 @@ from datetime import datetime
 from flask import abort
 import csv
 import io
+from werkzeug.exceptions import BadRequest
 
 
 class CommanderService:
@@ -71,6 +72,47 @@ class CommanderService:
     @staticmethod
     def get_commander_jobs(commander_id):
         return Job.query.filter_by(commander_id=commander_id).all()
+
+    @staticmethod
+    def get_job_by_id(job_id):
+        return Job.query.get(job_id)
+
+    @staticmethod
+    def patch_job(job, data):
+        data = {k.lower(): v for k, v in data.items()}
+
+        field_mapping = {
+            'name': 'title',
+            'description': 'description',
+            'positions': 'vacant_positions',
+            'category': 'category',
+            'unit': 'unit',
+            'address': 'address',
+            'openbase': 'is_open_base',
+            'additionalinfo': 'additional_info',
+            'questions': 'common_questions',
+            'answers': 'common_answers',
+            'workexperience': 'experience',
+            'education': 'education',
+            'passedcourses': 'passed_courses',
+            'techskills': 'tech_skills',
+            'status': 'status'
+        }
+        print(data)
+        for frontend_key, model_field in field_mapping.items():
+            if frontend_key in data:
+                print(frontend_key, model_field)
+                value = data[frontend_key]
+
+                if model_field == 'status':
+                    try:
+                        value = JobStatus(value)
+                    except ValueError:
+                        raise BadRequest(f"Invalid status value: {value}")
+                setattr(job, model_field, value)
+
+        db.session.commit()
+        return job
 
     @staticmethod
     def get_job_applications(job_id, commander_id):
@@ -145,34 +187,3 @@ class CommanderService:
             ])
 
         return output.getvalue()
-
-    # Update:
-    #
-    # Name
-    # Category
-    # Description
-    # TechSkills
-    # education
-    # positions
-    # -------------
-    # CloseJob:
-    # Status
-    #
-    # -----------------------------
-    # Create:
-    #
-    # Name
-    # Category
-    # Unit
-    # Address
-    # Positions
-    # OpenBase
-    # ClosedBase
-    # Description
-    # AdditionalInfo
-    # Questions
-    # Answers
-    # WorkExperience
-    # Education
-    # PassedCourses
-    # TechSkills

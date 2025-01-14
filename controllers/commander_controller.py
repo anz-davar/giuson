@@ -51,19 +51,52 @@ def get_jobs():
         'passedCourses': job.passed_courses,
         'candidateCount': len(job.applications),
         'status': job.status.name,
-        'department':job.commander.department if job.commander else None,   # Get department from job
+        'department': job.commander.department if job.commander else None,  # Get department from job
         'commanderId': job.commander_id,
         'applications_count': len(job.applications)
     } for job in jobs]
 
     return jsonify(payload), 200
-    # return jsonify([{
-    #     'id': job.id,
-    #     'title': job.title,
-    #     'description': job.description,
-    #     'vacant_positions': job.vacant_positions,
-    #     'applications_count': len(job.applications)
-    # } for job in jobs]), 200
+
+
+@commander_bp.route('/jobs/<int:job_id>', methods=['PATCH'])
+@jwt_required()
+def patch_job_route(job_id):
+    current_user = User.query.get(get_jwt_identity())
+    if current_user.role != 'commander':
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    job = CommanderService.get_job_by_id(job_id)
+    if not job:
+        return jsonify({'message': 'Job not found'}), 404
+
+    data = request.get_json()
+
+    updated_job = CommanderService.patch_job(job, data)
+
+    return jsonify({'message': 'Job updated successfully', 'job': {
+        'id': str(updated_job.id),
+        'jobName': updated_job.title,
+        'jobCategory': updated_job.category,
+        'unit': updated_job.unit,
+        'address': updated_job.address,
+        'positions': updated_job.vacant_positions,
+        'openBase': updated_job.is_open_base,
+        'closedBase': not updated_job.is_open_base,
+        'jobDescription': updated_job.description,
+        'additionalInfo': updated_job.additional_info,
+        'commonQuestions': updated_job.common_questions,
+        'commonAnswers': updated_job.common_answers,
+        'education': updated_job.education,
+        'techSkills': updated_job.tech_skills,
+        'workExperience': updated_job.experience,
+        'passedCourses': updated_job.passed_courses,
+        'candidateCount': len(updated_job.applications),
+        'status': updated_job.status.name,
+        'department': updated_job.commander.department if updated_job.commander else None,  # Get department from job
+        'commanderId': updated_job.commander_id,
+        'applications_count': len(updated_job.applications)
+    }}), 200
 
 
 def calculate_age(born):
@@ -71,11 +104,12 @@ def calculate_age(born):
     try:
         birthday = born.replace(year=today.year)
     except ValueError:
-        birthday = born.replace(year=today.year, day=born.day-1)
+        birthday = born.replace(year=today.year, day=born.day - 1)
     if birthday > today:
         return today.year - born.year - 1
     else:
         return today.year - born.year
+
 
 @commander_bp.route('/jobs/<int:job_id>/applications', methods=['GET'])
 @jwt_required()
