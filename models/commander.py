@@ -8,7 +8,6 @@ class Commander(db.Model):
     name = db.Column(db.String(100), nullable=False)
     rank = db.Column(db.String(50))
     department = db.Column(db.String(100))
-    phone = db.Column(db.String(20))
 
     # Relationships
     jobs = db.relationship('Job', backref='commander', lazy=True)

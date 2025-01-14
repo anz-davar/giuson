@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.hr_service import HRService
 from models import User
+from datetime import datetime, date, timedelta
 
 hr_bp = Blueprint('hr', __name__)
 
@@ -40,24 +41,58 @@ def create_volunteer():
         return jsonify({'error': str(e)}), 400
 
 
+def calculate_age(born):
+    today = date.today()
+    try:
+        birthday = born.replace(year=today.year)
+    except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+        birthday = born.replace(year=today.year, day=born.day-1)
+    if birthday > today:
+        return today.year - born.year - 1
+    else:
+        return today.year - born.year
+
 @hr_bp.route('/volunteers', methods=['GET'])
 @jwt_required()
 def get_volunteers():
     """Get all volunteers"""
     current_user = User.query.get(get_jwt_identity())
-    if current_user.role != 'hr':
-        return jsonify({'message': 'Unauthorized'}), 403
+    # if current_user.role != 'hr':
+    #     return jsonify({'message': 'Unauthorized'}), 403
 
     volunteers = HRService.get_all_volunteers()
-    return jsonify([{
+    # return jsonify([{
+    #     'id': v.id,
+    #     'full_name': v.full_name,
+    #     'email': v.user.email,
+    #     'phone': v.phone,
+    #     'education': v.education,
+    #     'primary_profession': v.primary_profession
+    # } for v in volunteers]), 200
+    payload = [{
         'id': v.id,
-        'full_name': v.full_name,
+        'fullName': v.user.full_name,
+        'idNumber': v.national_id,  # Assuming national_id is the same as idNumber
+        'dateOfBirth': v.date_of_birth.strftime('%Y-%m-%d') if v.date_of_birth else None,  # Format dateOfBirth
+        # 'dateOfBirth': (datetime.fromtimestamp(v.date_of_birth / 1000).strftime('%Y-%m-%d')) if v.date_of_birth else None, #Convert from timestamp
+        'age': calculate_age(v.date_of_birth) if v.date_of_birth else None,  # Function to calculate age (optional)
+        'gender': v.gender.value if v.gender else None,  # Handle potential null values
+        'profile': v.profile,
+        'phone': v.user.phone,
         'email': v.user.email,
-        'phone': v.phone,
+        'address': v.address,
+        'experience': v.experience,
         'education': v.education,
-        'primary_profession': v.primary_profession
-    } for v in volunteers]), 200
+        'courses': v.courses,
+        'languages': v.languages,  # Function to extract languages (optional)
+        'interests': v.interests,
+        'personalSummary': v.personal_summary,
+        'jobStatuses': {str(job_app.job_id): job_app.status.value
+                         for job_app in v.applications},  # Map job application status
+        'imageUrl': v.user.image_url if v.user.image_url else None  # Handle potential null values
+    } for v in volunteers]
 
+    return jsonify(payload), 200
 
 @hr_bp.route('/volunteers/<int:volunteer_id>', methods=['GET'])
 @jwt_required()

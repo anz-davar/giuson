@@ -4,6 +4,7 @@ from db import db
 from config import Config
 import os
 from flask_cors import CORS
+from flask_migrate import Migrate
 
 from models import User, Volunteer, Resume, Commander, HR, Job, JobQuestion, JobApplication, ApplicationAnswer, Interview
 
@@ -13,7 +14,12 @@ def create_app():
     app.config.from_object(Config)
 
     # Initialize extensions
+    # db.init_app(app)
+    migrate = Migrate()
+
     db.init_app(app)
+    migrate.init_app(app, db)
+
     jwt = JWTManager(app)
     # CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
     CORS(app, resources={r"/api/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:4200"]}}, supports_credentials=True)

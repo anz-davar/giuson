@@ -9,6 +9,11 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # 'commander', 'volunteer', 'hr'
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    image_url = db.Column(db.String(255))  # Added image_url field
+    full_name = db.Column(db.String(100))
+    phone = db.Column(db.String(20))
+
+    # full_name = db.Column(db.String(100), nullable=False) #make nulable later
 
     # Relationships
     volunteer = db.relationship('Volunteer', backref='user', uselist=False)

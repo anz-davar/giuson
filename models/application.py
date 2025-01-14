@@ -1,5 +1,13 @@
+import enum
+
 from db import db
 from datetime import datetime
+
+
+class ApplicationStatus(enum.Enum):
+    PENDING = "pending"
+    PREFERRED = "preferred"
+    REJECTED = "rejected"
 
 
 class JobApplication(db.Model):
@@ -7,7 +15,7 @@ class JobApplication(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False)
     volunteer_id = db.Column(db.Integer, db.ForeignKey('volunteers.id'), nullable=False)
-    status = db.Column(db.String(20), default='pending')  # pending, interview, accepted, rejected
+    status = db.Column(db.Enum(ApplicationStatus), default=ApplicationStatus.PENDING)
     application_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
