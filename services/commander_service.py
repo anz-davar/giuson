@@ -25,27 +25,45 @@ class CommanderService:
 
     @staticmethod
     def create_job(commander_id, data):
+        # job = Job(
+        #     commander_id=commander_id,
+        #     title=data['title'],
+        #     description=data['description'],
+        #     vacant_positions=data.get('vacant_positions', 1),
+        #     education_requirement=data.get('education_requirement'),
+        #     required_certificates=data.get('required_certificates'),
+        #     required_languages=data.get('required_languages'),
+        #     hourly_salary=data.get('hourly_salary'),
+        #     weekly_salary_cap=data.get('weekly_salary_cap')
+        # )
         job = Job(
             commander_id=commander_id,
-            title=data['title'],
+            title=data['name'],  # Map name to title
             description=data['description'],
-            vacant_positions=data.get('vacant_positions', 1),
-            education_requirement=data.get('education_requirement'),
-            required_certificates=data.get('required_certificates'),
-            required_languages=data.get('required_languages'),
-            hourly_salary=data.get('hourly_salary'),
-            weekly_salary_cap=data.get('weekly_salary_cap')
+            vacant_positions=data.get('positions', 1),
+            category=data.get('category'),
+            unit=data.get('unit'),
+            address=data.get('address'),
+            is_open_base=data.get('openBase', True),
+            additional_info=data.get('additionalInfo'),
+            common_questions=data.get('questions'),
+            common_answers=data.get('answers'),
+            experience=data.get('workExperience'),
+            education=data.get('education'),
+            passed_courses=data.get('passedCourses'),
+            tech_skills=data.get('techSkills'),
         )
+
         db.session.add(job)
 
-        # Add questions
-        for question_data in data.get('questions', []):
-            question = JobQuestion(
-                job=job,
-                question_text=question_data['text'],
-                required=question_data.get('required', True)
-            )
-            db.session.add(question)
+        # Add questions TODO maybe return later multiple qustions and answers
+        # for question_data in data.get('questions', []):
+        #     question = JobQuestion(
+        #         job=job,
+        #         question_text=question_data['text'],
+        #         required=question_data.get('required', True)
+        #     )
+        #     db.session.add(question)
 
         db.session.commit()
         return job
@@ -127,3 +145,34 @@ class CommanderService:
             ])
 
         return output.getvalue()
+
+    # Update:
+    #
+    # Name
+    # Category
+    # Description
+    # TechSkills
+    # education
+    # positions
+    # -------------
+    # CloseJob:
+    # Status
+    #
+    # -----------------------------
+    # Create:
+    #
+    # Name
+    # Category
+    # Unit
+    # Address
+    # Positions
+    # OpenBase
+    # ClosedBase
+    # Description
+    # AdditionalInfo
+    # Questions
+    # Answers
+    # WorkExperience
+    # Education
+    # PassedCourses
+    # TechSkills
