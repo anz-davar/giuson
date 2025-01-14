@@ -1,3 +1,4 @@
+from datetime import date
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.commander_service import CommanderService
@@ -65,6 +66,17 @@ def get_jobs():
     # } for job in jobs]), 200
 
 
+def calculate_age(born):
+    today = date.today()
+    try:
+        birthday = born.replace(year=today.year)
+    except ValueError:
+        birthday = born.replace(year=today.year, day=born.day-1)
+    if birthday > today:
+        return today.year - born.year - 1
+    else:
+        return today.year - born.year
+
 @commander_bp.route('/jobs/<int:job_id>/applications', methods=['GET'])
 @jwt_required()
 def get_job_applications(job_id):
@@ -75,6 +87,8 @@ def get_job_applications(job_id):
     applications = CommanderService.get_job_applications(job_id, current_user.commander.id)
     return jsonify([{
         'candidateUserId': app.volunteer.user_id,
+        'name': app.volunteer.full_name,
+        'age': calculate_age(app.volunteer.date_of_birth) if app.volunteer.date_of_birth else None,
         'status': app.status.value
     } for app in applications]), 200
 
