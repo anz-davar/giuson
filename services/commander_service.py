@@ -1,3 +1,4 @@
+from models import Volunteer
 from models.commander import Commander
 from models.job import Job, JobQuestion, JobStatus
 from models.interview import Interview
@@ -113,6 +114,10 @@ class CommanderService:
 
         db.session.commit()
         return job
+
+    @staticmethod
+    def get_volunteer_by_id(volunteer_id):
+        return Volunteer.query.get_or_404(volunteer_id)
 
     @staticmethod
     def get_job_applications(job_id, commander_id):

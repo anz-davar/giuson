@@ -127,6 +127,41 @@ def get_job_applications(job_id):
     } for app in applications]), 200
 
 
+@commander_bp.route('/volunteers/<int:volunteer_id>', methods=['GET'])
+@jwt_required()
+def get_volunteer(volunteer_id):
+    current_user = User.query.get(get_jwt_identity())
+    if current_user.role != 'commander':
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    volunteer = CommanderService.get_volunteer_by_id(volunteer_id)
+    payload = {
+        'id': volunteer.id,
+        'fullName': volunteer.full_name,
+        'idNumber': volunteer.national_id,  # Assuming national_id is the same as idNumber
+        'dateOfBirth': volunteer.date_of_birth.strftime('%Y-%m-%d') if volunteer.date_of_birth else None,
+        # Format dateOfBirth
+        'age': calculate_age(volunteer.date_of_birth) if volunteer.date_of_birth else None,
+        # Function to calculate age (optional)
+        'gender': volunteer.gender.value if volunteer.gender else None,  # Handle potential null values
+        'profile': volunteer.profile,
+        'phone': volunteer.user.phone,
+        'email': volunteer.user.email,
+        'address': volunteer.address,
+        'experience': volunteer.experience,
+        'education': volunteer.education,
+        'courses': volunteer.courses,
+        'languages': volunteer.languages,  # Function to extract languages (optional)
+        'interests': volunteer.interests,
+        'personalSummary': volunteer.personal_summary,
+        'jobStatuses': {str(job_app.job_id): job_app.status.value
+                        for job_app in volunteer.applications},  # Map job application status
+        'imageUrl': volunteer.user.image_url if volunteer.user.image_url else None  # Handle potential null values
+    }
+
+    return jsonify(payload), 200
+
+
 @commander_bp.route('/applications/<int:application_id>/status', methods=['PUT'])
 @jwt_required()
 def update_application_status(application_id):
