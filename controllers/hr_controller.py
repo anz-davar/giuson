@@ -138,13 +138,31 @@ def get_jobs():
         return jsonify({'message': 'Unauthorized'}), 403
 
     jobs = HRService.get_all_jobs()
-    return jsonify([{
-        'id': job.id,
-        'title': job.title,
-        'commander_name': job.commander.name,
-        'vacant_positions': job.vacant_positions,
+    payload = [{
+        'id': str(job.id),
+        'jobName': job.title,
+        'jobCategory': job.category,
+        'unit': job.unit,
+        'address': job.address,
+        'positions': job.vacant_positions,
+        'openBase': job.is_open_base,
+        'closedBase': not job.is_open_base,
+        'jobDescription': job.description,
+        'additionalInfo': job.additional_info,
+        'commonQuestions': job.common_questions,
+        'commonAnswers': job.common_answers,
+        'education': job.education,
+        'techSkills': job.tech_skills,
+        'workExperience': job.experience,
+        'passedCourses': job.passed_courses,
+        'candidateCount': len(job.applications),
+        'status': job.status.name,
+        'department':job.commander.department if job.commander else None,   # Get department from job
+        'commanderId': job.commander_id,
         'applications_count': len(job.applications)
-    } for job in jobs]), 200
+    } for job in jobs]
+
+    return jsonify(payload), 200
 
 
 @hr_bp.route('/assignments', methods=['POST'])
