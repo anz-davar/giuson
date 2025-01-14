@@ -134,7 +134,14 @@ def get_volunteer(volunteer_id):
     if current_user.role != 'commander':
         return jsonify({'message': 'Unauthorized'}), 403
 
-    volunteer = CommanderService.get_volunteer_by_id(volunteer_id)
+    current_commander_id = current_user.id
+    print('id of commander is', current_commander_id)
+    volunteer = CommanderService.get_volunteer_if_applied_to_commander_jobs(current_commander_id, volunteer_id)
+
+    if not volunteer:
+        return jsonify({'message': 'Volunteer has not applied to any of your jobs'}), 404
+
+
     payload = {
         'id': volunteer.id,
         'fullName': volunteer.full_name,

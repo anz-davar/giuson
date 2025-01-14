@@ -120,6 +120,19 @@ class CommanderService:
         return Volunteer.query.get_or_404(volunteer_id)
 
     @staticmethod
+    def get_volunteer_if_applied_to_commander_jobs(commander_id, volunteer_id):
+        has_applied = JobApplication.query.join(Job).filter(
+            Job.commander_id == commander_id,
+            JobApplication.volunteer_id == volunteer_id
+        ).first()
+
+        if not has_applied:
+            return None  # Return None if not applied
+
+        return Volunteer.query.get_or_404(volunteer_id)  # get volunteer if has applied
+
+
+    @staticmethod
     def get_job_applications(job_id, commander_id):
         job = Job.query.filter_by(id=job_id, commander_id=commander_id).first()
         if not job:
