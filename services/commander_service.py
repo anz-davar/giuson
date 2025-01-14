@@ -1,8 +1,10 @@
+from flask_jwt_extended import get_jwt_identity
+
 from models import Volunteer
 from models.commander import Commander
 from models.job import Job, JobQuestion, JobStatus
 from models.interview import Interview
-from models.application import JobApplication
+from models.application import JobApplication, ApplicationStatus
 from db import db
 from datetime import datetime
 from flask import abort
@@ -145,6 +147,31 @@ class CommanderService:
         if application.job.commander_id != commander_id:
             abort(403)
         application.status = status
+        db.session.commit()
+        return application
+
+    @staticmethod
+    def patch_job_application_status(job_id, volunteer_id, data):
+        if 'status' not in data:
+            raise BadRequest("Missing 'status' field in request data.")
+
+        try:
+            status_value = ApplicationStatus(data['status'])
+        except ValueError:
+            raise BadRequest(f"Invalid status value: {data['status']}")
+
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+
+        if not application:
+            raise BadRequest('Job application not found')
+
+        commander_id = get_jwt_identity()
+        job = Job.query.get(job_id)
+
+        if not job or str(job.commander_id) != str(commander_id):
+            raise BadRequest("You don't have permission to update this application.")
+
+        application.status = status_value
         db.session.commit()
         return application
 

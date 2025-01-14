@@ -1,6 +1,8 @@
 from datetime import date
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from werkzeug.exceptions import BadRequest
+
 from services.commander_service import CommanderService
 from models.user import User
 import io
@@ -126,6 +128,22 @@ def get_job_applications(job_id):
         'status': app.status.value
     } for app in applications]), 200
 
+@commander_bp.route('/jobs/<int:job_id>/volunteers/<int:volunteer_id>', methods=['PATCH'])
+@jwt_required()
+def update_job_application_status(job_id, volunteer_id):
+    current_user = User.query.get(get_jwt_identity())
+    if current_user.role != 'commander':
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    try:
+        updated_application = CommanderService.patch_job_application_status(job_id, volunteer_id, request.get_json())
+        return jsonify({'message': 'Job application status updated successfully', 'application': {
+            'id': str(updated_application.id),
+            'status': updated_application.status.name,
+        }}), 200
+    except BadRequest as e:
+        return jsonify({"message": str(e)}), 400
+
 
 @commander_bp.route('/volunteers/<int:volunteer_id>', methods=['GET'])
 @jwt_required()
@@ -140,7 +158,6 @@ def get_volunteer(volunteer_id):
 
     if not volunteer:
         return jsonify({'message': 'Volunteer has not applied to any of your jobs'}), 404
-
 
     payload = {
         'id': volunteer.id,
