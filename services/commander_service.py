@@ -133,7 +133,6 @@ class CommanderService:
 
         return Volunteer.query.get_or_404(volunteer_id)  # get volunteer if has applied
 
-
     @staticmethod
     def get_job_applications(job_id, commander_id):
         job = Job.query.filter_by(id=job_id, commander_id=commander_id).first()
@@ -174,6 +173,68 @@ class CommanderService:
         application.status = status_value
         db.session.commit()
         return application
+
+    @staticmethod
+    def create_interview(job_id, volunteer_id, data):
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+        if not application:
+            raise BadRequest('Job application not found')
+
+        scheduled_date_str = data.get('interviewDate')
+        scheduled_date = None  # Default to None if no date is provided
+        if scheduled_date_str:
+            try:
+                scheduled_date = datetime.fromisoformat(scheduled_date_str)  # convert to datetime
+            except ValueError:
+                raise BadRequest("Invalid date format. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS).")
+
+        interview = Interview(
+            application_id=application.id,
+            general_info=data.get('interviewNotes'),
+            scheduled_date=scheduled_date,  # Now a datetime object or None
+            schedule=data.get('automaticMessage'),
+            status=data.get('status')
+        )
+        db.session.add(interview)
+        db.session.commit()
+        return interview
+
+    @staticmethod
+    def get_interview(job_id, volunteer_id):
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+        if not application:
+            return None
+        return application.interview
+
+    @staticmethod
+    def patch_interview(job_id, volunteer_id, data):
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+        if not application:
+            raise BadRequest('Job application not found')
+        interview = application.interview
+        if not interview:
+            raise BadRequest('Interview not found')
+
+        if "interviewNotes" in data:
+            interview.general_info = data.get('interviewNotes')
+
+        if "interviewDate" in data:
+            scheduled_date_str = data.get('interviewDate')
+            scheduled_date = None
+            if scheduled_date_str:
+                try:
+                    scheduled_date = datetime.fromisoformat(scheduled_date_str)
+                except ValueError:
+                    raise BadRequest("Invalid date format. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS).")
+            interview.scheduled_date = scheduled_date
+
+        if "automaticMessage" in data:
+            interview.schedule = data.get('automaticMessage')
+        if "status" in data:
+            interview.status = data.get('status')
+
+        db.session.commit()
+        return interview
 
     @staticmethod
     def schedule_interview(application_id, commander_id, interview_data):

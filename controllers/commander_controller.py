@@ -145,6 +145,59 @@ def update_job_application_status(job_id, volunteer_id):
         return jsonify({"message": str(e)}), 400
 
 
+@commander_bp.route('/jobs/<int:job_id>/volunteers/<int:volunteer_id>/interviews', methods=['POST', 'GET', 'PATCH'])
+@jwt_required()
+def interview_management(job_id, volunteer_id):
+    current_user = User.query.get(get_jwt_identity())
+    if current_user.role != 'commander':
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    try:
+        if request.method == 'POST':
+            data = request.get_json()
+            interview = CommanderService.create_interview(job_id, volunteer_id, data)
+            return jsonify({'message': 'Interview created successfully', 'interview': {
+                "candidateId": str(volunteer_id),
+                "jobId": str(job_id),
+                "interviewNotes": interview.general_info,
+                "interviewDate": interview.scheduled_date.isoformat() if interview.scheduled_date else None,
+                "automaticMessage": interview.schedule,
+                "status": interview.status
+            }}), 201
+
+        elif request.method == 'GET':
+            interview = CommanderService.get_interview(job_id, volunteer_id)
+            if not interview:
+                return jsonify({'message': 'Interview not found'}), 404
+            return jsonify({
+                "candidateId": str(volunteer_id),
+                "jobId": str(job_id),
+                "interviewNotes": interview.general_info,
+                "interviewDate": interview.scheduled_date.isoformat() if interview.scheduled_date else None,
+                "automaticMessage": interview.schedule,
+                "status": interview.status
+            }), 200
+
+        elif request.method == 'PATCH':
+            data = request.get_json()
+            interview = CommanderService.patch_interview(job_id, volunteer_id, data)
+            if not interview:
+                return jsonify({'message': 'Interview not found'}), 404
+            return jsonify({
+                "candidateId": str(volunteer_id),
+                "jobId": str(job_id),
+                "interviewNotes": interview.general_info,
+                "interviewDate": interview.scheduled_date.isoformat() if interview.scheduled_date else None,
+                "automaticMessage": interview.schedule,
+                "status": interview.status
+            }), 200
+
+    except BadRequest as e:
+        return jsonify({"message": str(e)}), 400
+    except Exception as e:
+        return jsonify({"message": "An error occurred: " + str(e)}), 500
+
+
 @commander_bp.route('/volunteers/<int:volunteer_id>', methods=['GET'])
 @jwt_required()
 def get_volunteer(volunteer_id):
