@@ -111,3 +111,10 @@ def upload_resume(job_id):
     except Exception as e:
         print(e)
         return jsonify({'message': 'Internal server error'}), 500
+    
+@volunteer_bp.route('/jobs/<int:job_id>/check-application', methods=['GET'])
+@jwt_required()
+def check_application(job_id):
+    current_user = User.query.get(get_jwt_identity())
+    already_applied = VolunteerService.check_if_applied(current_user.volunteer.id, job_id)
+    return jsonify({'alreadyApplied': already_applied}), 200
