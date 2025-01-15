@@ -10,26 +10,53 @@ from models.volunteer import Volunteer
 
 
 class VolunteerService:
+
     @staticmethod
     def apply_for_job(volunteer_id, job_id, data):
+        existing_application = JobApplication.query.filter_by(
+            volunteer_id=volunteer_id, job_id=job_id).first()
+        if existing_application:
+            raise BadRequest("You have already applied for this job")
+
         application = JobApplication(
             volunteer_id=volunteer_id,
-            job_id=job_id
+            job_id=job_id,
+            **data  # Unpack data dictionary into keyword arguments
         )
         db.session.add(application)
-
-        # Add answers
-        for answer in data.get('answers', []):
-            app_answer = ApplicationAnswer(
-                application=application,
-                question_id=answer['question_id'],
-                answer_text=answer['text']
-            )
-            db.session.add(app_answer)
-
         db.session.commit()
         return application
 
+    # @staticmethod
+    # def apply_for_job(volunteer_id, job_id, data):
+    #     application = JobApplication(
+    #         volunteer_id=volunteer_id,
+    #         job_id=job_id
+    #     )
+    #     db.session.add(application)
+
+        # # Add answers
+        # for answer in data.get('answers', []):
+        #     app_answer = ApplicationAnswer(
+        #         application=application,
+        #         question_id=answer['question_id'],
+        #         answer_text=answer['text']
+        #     )
+        #     db.session.add(app_answer)
+
+        # db.session.commit()
+        # return application
+
+    @staticmethod
+    def delete_application(volunteer_id, job_id):
+        application = JobApplication.query.filter_by(
+            volunteer_id=volunteer_id, job_id=job_id).first()
+        if not application:
+            return None
+
+        db.session.delete(application)
+        db.session.commit()
+        return application
     @staticmethod
     def upload_resume(volunteer_id, file):
         # Handle file upload logic here

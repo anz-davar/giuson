@@ -20,20 +20,47 @@ def get_available_jobs():
     } for job in jobs]), 200
 
 
-@volunteer_bp.route('/jobs/<int:job_id>/apply', methods=['POST'])
+@volunteer_bp.route('/jobs/<int:job_id>/apply', methods=['POST', 'DELETE'])
 @jwt_required()
 def apply_for_job(job_id):
     current_user = User.query.get(get_jwt_identity())
     if current_user.role != 'volunteer':
         return jsonify({'message': 'Unauthorized'}), 403
 
-    data = request.get_json()
-    application = VolunteerService.apply_for_job(
-        current_user.volunteer.id,
-        job_id,
-        data
-    )
-    return jsonify({'message': 'Application submitted successfully'}), 201
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            application = VolunteerService.apply_for_job(current_user.volunteer.id, job_id, data)
+            return jsonify({'message': 'Application submitted successfully'}), 201
+        except BadRequest as e:
+            return jsonify({'message': str(e)}), 400
+        except Exception as e:
+            return jsonify({'message': 'An error occurred: ' + str(e)}), 500
+
+    elif request.method == 'DELETE':
+        application = VolunteerService.delete_application(current_user.volunteer.id, job_id)
+        if application:
+            return jsonify({'message': 'Application deleted successfully'}), 200
+        else:
+            return jsonify({'message': 'No application found'}), 404
+
+    else:
+        return jsonify({'message': 'Method not allowed'}), 405
+
+# @volunteer_bp.route('/jobs/<int:job_id>/apply', methods=['POST'])
+# @jwt_required()
+# def apply_for_job(job_id):
+#     current_user = User.query.get(get_jwt_identity())
+#     if current_user.role != 'volunteer':
+#         return jsonify({'message': 'Unauthorized'}), 403
+#
+#     data = request.get_json()
+#     application = VolunteerService.apply_for_job(
+#         current_user.volunteer.id,
+#         job_id,
+#         data
+#     )
+#     return jsonify({'message': 'Application submitted successfully'}), 201
 
 
 @volunteer_bp.route('/<int:user_id>', methods=['PATCH'])
