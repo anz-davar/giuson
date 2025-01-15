@@ -1,5 +1,8 @@
+from datetime import date
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import get_jwt_identity
 from services.auth_service import AuthService
+from services.volunteer_service import VolunteerService
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -29,16 +32,51 @@ def login():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
-
+    
     if not email or not password:
         return jsonify({'message': 'Missing email or password'}), 400
-
-    token, role = AuthService.login(email, password)
-
-    if token:
-        return jsonify({
-            'access_token': token,
-            'role': role
-        }), 200
-    else:
+        
+    token, role, user_id = AuthService.login(email, password)
+    
+    if not token:
         return jsonify({'message': 'Invalid credentials'}), 401
+        
+    response = {
+        'access_token': token,
+        'role': role
+    }
+    
+    if role == 'volunteer':
+        volunteer = VolunteerService.get_user_info(user_id)
+        if volunteer:
+            response['user'] = {
+                'id': volunteer.id,
+                'full_name': volunteer.full_name,
+                'national_id': volunteer.national_id,
+                'address': volunteer.address,
+                'primary_profession': volunteer.primary_profession,
+                'education': volunteer.education,
+                'area_of_interest': volunteer.area_of_interest,
+                'profile': volunteer.profile,
+                'date_of_birth': volunteer.date_of_birth.strftime('%Y-%b-%d') if volunteer.date_of_birth else None,
+                'age': calculate_age(volunteer.date_of_birth) if volunteer.date_of_birth else None,
+                'gender': volunteer.gender.name if volunteer.gender else None,
+                'experience': volunteer.experience,
+                'courses': volunteer.courses,
+                'languages': volunteer.languages,
+                'interests': volunteer.interests,
+                'personal_summary': volunteer.personal_summary
+            }
+    
+    return jsonify(response), 200
+
+def calculate_age(born):
+    today = date.today()
+    try:
+        birthday = born.replace(year=today.year)
+    except ValueError:
+        birthday = born.replace(year=today.year, day=born.day - 1)
+    if birthday > today:
+        return today.year - born.year - 1
+    else:
+        return today.year - born.year

@@ -12,8 +12,8 @@ class AuthService:
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
             access_token = AuthService.generate_token(user)
-            return access_token, user.role
-        return None, None
+            return access_token, user.role, user.id
+        return None, None, None
 
     @staticmethod
     def generate_token(user):

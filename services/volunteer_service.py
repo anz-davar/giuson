@@ -2,6 +2,8 @@ from models import JobApplication, ApplicationAnswer, Resume
 from db import db
 import os
 
+from models.volunteer import Volunteer
+
 
 class VolunteerService:
     @staticmethod
@@ -40,3 +42,7 @@ class VolunteerService:
         # Save file
         file.save(file_path)
         return resume
+    
+    @staticmethod
+    def get_user_info(user_id):
+        return Volunteer.query.filter_by(user_id=user_id).first()
