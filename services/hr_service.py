@@ -132,3 +132,6 @@ class HRService:
             db.session.rollback()
             raise e
 
+    @staticmethod
+    def get_hr_user_info(user_id):
+        return User.query.filter_by(id=user_id).first()

@@ -2,6 +2,7 @@ from datetime import date
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from services.auth_service import AuthService
+from services.hr_service import HRService
 from services.volunteer_service import VolunteerService
 
 auth_bp = Blueprint('auth', __name__)
@@ -67,6 +68,12 @@ def login():
                 'languages': volunteer.languages,
                 'interests': volunteer.interests,
                 'personal_summary': volunteer.personal_summary
+            }
+    elif role == 'hr':
+        hr = HRService.get_hr_user_info(user_id)
+        if hr:
+            response['user'] = {
+                'id': hr.id,
             }
     
     return jsonify(response), 200
