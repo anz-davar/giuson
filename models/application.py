@@ -8,6 +8,7 @@ class ApplicationStatus(enum.Enum):
     PENDING = "pending"
     PREFERRED = "preferred"
     REJECTED = "rejected"
+    HIRED = "hired"
     def __str__(self):
         return self.value
 

@@ -62,11 +62,26 @@ class VolunteerService:
         if not volunteer:
             raise BadRequest("Volunteer not found")
 
+        user = volunteer.user
+
+        volunteer_data = {}
+        user_data = {}
+
         for key, value in data.items():
             if hasattr(volunteer, key):
-                setattr(volunteer, key, value)
+                volunteer_data[key] = value
+            elif hasattr(user, key):
+                user_data[key] = value
             else:
                 raise BadRequest(f"Invalid field to update: {key}")
+
+        # Update Volunteer fields
+        for key, value in volunteer_data.items():
+            setattr(volunteer, key, value)
+
+        # Update User fields
+        for key, value in user_data.items():
+            setattr(user, key, value)
 
         db.session.commit()
         return volunteer
