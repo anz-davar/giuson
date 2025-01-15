@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
+
 from db import db
 from config import Config
 import os
@@ -22,7 +23,7 @@ def create_app():
 
     jwt = JWTManager(app)
     # CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
-    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:4200"]}}, supports_credentials=True)
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:4200","http://localhost:63342"]}}, supports_credentials=True)
 
     @jwt.invalid_token_loader
     def invalid_token_callback(error):

@@ -1,8 +1,10 @@
+import os
 from datetime import date
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify, send_file, current_app, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.exceptions import BadRequest
 
+from models import Resume, JobApplication
 from services.commander_service import CommanderService
 from models.user import User
 import io
@@ -127,6 +129,7 @@ def get_job_applications(job_id):
         'age': calculate_age(app.volunteer.date_of_birth) if app.volunteer.date_of_birth else None,
         'status': app.status.value
     } for app in applications]), 200
+
 
 @commander_bp.route('/jobs/<int:job_id>/volunteers/<int:volunteer_id>', methods=['PATCH'])
 @jwt_required()
@@ -272,6 +275,45 @@ def schedule_interview(application_id):
         'message': 'Interview scheduled successfully',
         'interview_id': interview.id
     }), 201
+
+
+@commander_bp.route('/jobs/<int:job_id>/volunteers/<int:user_id>/resume', methods=['GET'])
+@jwt_required()
+def get_resume_for_application(job_id, user_id):
+    current_user = User.query.get(get_jwt_identity())
+    if current_user.role != 'commander':
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user_id).first()
+    if not application:
+        return jsonify({'message': 'Application not found'}), 404
+
+    resume = Resume.query.filter_by(application_id=application.id).first()
+    if not resume:
+        return jsonify({'message': 'Resume not found for this application'}), 404
+
+    resumes_folder = current_app.config['RESUMES_FOLDER']
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    full_path = os.path.join(upload_folder, resumes_folder, resume.file_path)
+
+    if not os.path.exists(full_path):
+        return jsonify({'message': 'File not found on server'}), 404
+
+    uploads_path = os.path.join(current_app.root_path, current_app.config['UPLOAD_FOLDER'])
+    resumes_path = os.path.join(uploads_path, current_app.config['RESUMES_FOLDER'])
+    filename = resume.file_path
+    try:
+        return send_from_directory(resumes_path, filename)
+        # return send_from_directory(resumes_path, filename, as_attachment=True, download_name="resume.pdf")
+    except FileNotFoundError:
+        return jsonify({'message': 'File not found on server'}), 404
+    except Exception as e:
+        return jsonify({'message': f'An unexpected error occurred: {str(e)}'}), 500  # Return JSON error
+    # return jsonify({
+    #     'file_path': resume.file_path,
+    #     'application_id': resume.application_id,
+    #     # ... other resume details
+    # }), 200
 
 
 @commander_bp.route('/jobs/<int:job_id>/applications/export', methods=['GET'])

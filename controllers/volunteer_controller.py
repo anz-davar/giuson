@@ -47,21 +47,6 @@ def apply_for_job(job_id):
     else:
         return jsonify({'message': 'Method not allowed'}), 405
 
-# @volunteer_bp.route('/jobs/<int:job_id>/apply', methods=['POST'])
-# @jwt_required()
-# def apply_for_job(job_id):
-#     current_user = User.query.get(get_jwt_identity())
-#     if current_user.role != 'volunteer':
-#         return jsonify({'message': 'Unauthorized'}), 403
-#
-#     data = request.get_json()
-#     application = VolunteerService.apply_for_job(
-#         current_user.volunteer.id,
-#         job_id,
-#         data
-#     )
-#     return jsonify({'message': 'Application submitted successfully'}), 201
-
 
 @volunteer_bp.route('/<int:user_id>', methods=['PATCH'])
 @jwt_required()
@@ -101,3 +86,28 @@ def update_volunteer(user_id):
         return jsonify({'message': str(e)}), 400
     except Exception as e:
         return jsonify({'message': 'An error occurred: ' + str(e)}), 500
+
+
+
+@volunteer_bp.route('/jobs/<int:job_id>/resume', methods=['POST'])
+@jwt_required()
+def upload_resume(job_id):
+    current_user = User.query.get(get_jwt_identity())
+    if current_user.role != 'volunteer':
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    if 'resume' not in request.files:
+        return jsonify({'message': 'No resume file uploaded'}), 400
+
+    resume_file = request.files['resume']
+    original_filename = resume_file.filename  # Access the original filename
+
+    try:
+        resume = VolunteerService.upload_resume(current_user.volunteer.id, job_id, resume_file)
+        # You can potentially use the original_filename in the service call
+        return jsonify({'message': 'Resume uploaded successfully', 'resume_id': resume.id}), 201
+    except BadRequest as e:
+        return jsonify({'message': str(e)}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({'message': 'Internal server error'}), 500

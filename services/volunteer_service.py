@@ -1,12 +1,13 @@
 from datetime import datetime
 
-from werkzeug.exceptions import BadRequest
-
+from werkzeug.utils import secure_filename
+from flask import current_app
 from models import JobApplication, ApplicationAnswer, Resume, User
 from db import db
 import os
-
 from models.volunteer import Volunteer
+from models import Volunteer, Resume
+from werkzeug.exceptions import BadRequest
 
 
 class VolunteerService:
@@ -57,23 +58,45 @@ class VolunteerService:
         db.session.delete(application)
         db.session.commit()
         return application
+
     @staticmethod
-    def upload_resume(volunteer_id, file):
-        # Handle file upload logic here
-        filename = f"resume_{volunteer_id}_{file.filename}"
-        file_path = os.path.join('uploads', 'resumes', filename)
+    def upload_resume(volunteer_id, job_id, resume_file):
+        allowed_file_extensions = {'pdf', 'doc', 'docx', 'txt'}
+        filename_parts = resume_file.filename.rsplit('.', 1)
+        if len(filename_parts) == 1:
+            raise BadRequest("Filename has no extension")
+
+        file_extension = filename_parts[1].lower()
+
+        if file_extension not in allowed_file_extensions:
+            raise BadRequest("Invalid file format. Allowed extensions: " + ', '.join(allowed_file_extensions))
+
+        application = JobApplication.query.filter_by(volunteer_id=volunteer_id, job_id=job_id).first()
+        if not application:
+            raise BadRequest("You must apply for the job first before uploading a resume")
+
+        existing_resume = Resume.query.filter_by(application_id=application.id).first()
+        if existing_resume:
+            raise BadRequest("A resume has already been uploaded for this application")
+
+        filename = secure_filename(resume_file.filename)
+        resumes_folder = current_app.config['RESUMES_FOLDER']
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+        os.makedirs(os.path.join(upload_folder, resumes_folder), exist_ok=True)
+
+        full_file_path = os.path.join(upload_folder, resumes_folder, filename)
+
+        resume_file.save(full_file_path)
 
         resume = Resume(
-            volunteer_id=volunteer_id,
-            file_path=file_path
+            application_id=application.id,
+            file_path=filename  # Store ONLY the filename in the database
         )
         db.session.add(resume)
         db.session.commit()
-
-        # Save file
-        file.save(file_path)
         return resume
-    
+
+
     @staticmethod
     def get_user_info(user_id):
         return Volunteer.query.filter_by(user_id=user_id).first()

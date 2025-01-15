@@ -20,6 +20,7 @@ class JobApplication(db.Model):
     volunteer_id = db.Column(db.Integer, db.ForeignKey('volunteers.id'), nullable=False)
     status = db.Column(db.Enum(ApplicationStatus), default=ApplicationStatus.PENDING)
     application_date = db.Column(db.DateTime, default=datetime.utcnow)
+    resume = db.relationship('Resume', uselist=False, backref='application')
 
     # Relationships
     answers = db.relationship('ApplicationAnswer', backref='application', lazy=True)

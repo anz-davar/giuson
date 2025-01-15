@@ -34,7 +34,7 @@ class Volunteer(db.Model):
 
     # Relationships
     applications = db.relationship('JobApplication', backref='volunteer', lazy=True)
-    resume = db.relationship('Resume', backref='volunteer', uselist=False)
+    # resume = db.relationship('Resume', backref='volunteer', uselist=False)
 
 # class Volunteer(db.Model):
 #     __tablename__ = 'volunteers'
@@ -59,6 +59,8 @@ class Volunteer(db.Model):
 class Resume(db.Model):
     __tablename__ = 'resumes'
     id = db.Column(db.Integer, primary_key=True)
-    volunteer_id = db.Column(db.Integer, db.ForeignKey('volunteers.id'), nullable=False)
+
+    # volunteer_id = db.Column(db.Integer, db.ForeignKey('volunteers.id'), nullable=False)
+    application_id = db.Column(db.Integer, db.ForeignKey('job_applications.id'), nullable=False) # changed
     file_path = db.Column(db.String(255))
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)

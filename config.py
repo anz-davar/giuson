@@ -24,3 +24,7 @@ class Config:
     JSON_AS_ASCII = False  #
     JSON_SORT_KEYS = False  # Sometimes helps with Windows encoding issues
     PROPAGATE_EXCEPTIONS = True  # This will help you see the actual error
+
+    UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'uploads')
+    RESUMES_FOLDER = os.path.join(UPLOAD_FOLDER, 'resumes')  # Subfolder for resumes
+    MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB limit
