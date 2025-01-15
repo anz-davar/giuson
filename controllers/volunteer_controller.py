@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.exceptions import BadRequest
@@ -47,6 +48,14 @@ def apply_for_job(job_id):
     else:
         return jsonify({'message': 'Method not allowed'}), 405
 
+def format_date_of_birth(data):
+    if 'date_of_birth' in data and data['date_of_birth']:
+        try:
+            date_obj = datetime.strptime(data['date_of_birth'], '%Y-%b-%d')
+            data['date_of_birth'] = date_obj.strftime('%Y-%m-%dT00:00:00.000Z')
+        except ValueError as e:
+            raise BadRequest('Invalid date format for date_of_birth. Use YYYY-MMM-DD format (e.g., 2000-Nov-11)')
+    return data
 
 @volunteer_bp.route('/<int:user_id>', methods=['PATCH'])
 @jwt_required()
@@ -54,14 +63,15 @@ def update_volunteer(user_id):
     current_user = User.query.get(get_jwt_identity())
     if current_user.id != user_id:
         return jsonify({'message': 'Unauthorized'}), 403
-
     try:
         data = request.get_json()
-        updated_volunteer = VolunteerService.update_volunteer_details_by_user_id(user_id, data) #update function changed
-
+        # Format the date before updating
+        formatted_data = format_date_of_birth(data)
+        updated_volunteer = VolunteerService.update_volunteer_details_by_user_id(user_id, formatted_data)
+        
         if not updated_volunteer:
             return jsonify({'message': 'Volunteer not found'}), 404
-
+            
         return jsonify({
             'id': updated_volunteer.id,
             'full_name': updated_volunteer.full_name,
@@ -83,8 +93,10 @@ def update_volunteer(user_id):
             'imageUrl': updated_volunteer.user.image_url
         }), 200
     except BadRequest as e:
+        print(e)
         return jsonify({'message': str(e)}), 400
     except Exception as e:
+        print(e)
         return jsonify({'message': 'An error occurred: ' + str(e)}), 500
 
 
