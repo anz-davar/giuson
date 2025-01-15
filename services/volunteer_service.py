@@ -146,3 +146,9 @@ class VolunteerService:
 
         db.session.commit()
         return volunteer
+
+    @staticmethod
+    def check_if_applied(volunteer_id, job_id):
+        existing_application = JobApplication.query.filter_by(
+            volunteer_id=volunteer_id, job_id=job_id).first()
+        return existing_application is not None
