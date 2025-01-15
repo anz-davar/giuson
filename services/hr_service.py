@@ -1,8 +1,11 @@
 # services/hr_service.py
+from datetime import datetime
+
 from models import User, HR, Volunteer, JobApplication, Job
+from models.volunteer import Gender
 from services.auth_service import AuthService
 from db import db
-from flask import abort
+from flask import abort, jsonify
 
 
 class HRService:
@@ -122,10 +125,36 @@ class HRService:
             volunteer = Volunteer.query.get_or_404(volunteer_id)
 
             # Update volunteer fields
-            for key, value in data.items():
-                if hasattr(volunteer, key):
-                    setattr(volunteer, key, value)
+            # for key, value in data.items():
+            #     if hasattr(volunteer, key):
+            #         setattr(volunteer, key, value)
 
+            for key, value in data.items():
+                if key == "profile":
+                    try:
+                        setattr(volunteer, key, int(value) if value is not None else None)
+                    except (ValueError, TypeError):
+                        return jsonify({"error": "Invalid profile value (must be an integer)"}), 400
+                elif key == "date_of_birth":
+                    if value:
+                        try:
+                            date_object = datetime.fromisoformat(value.replace('Z', '+00:00')).date()
+                            setattr(volunteer, key, date_object)
+                        except ValueError:
+                            return jsonify({"error": "Invalid date format"}), 400
+                    else:
+                        setattr(volunteer, key, None)
+                elif key == "gender":
+                    if value:
+                        try:
+                            # Correct Enum Lookup (by value, case-insensitive)
+                            volunteer.gender = Gender(value.title())
+                        except ValueError:
+                            return jsonify({"error": f"Invalid gender: {value}"}), 400
+                    else:
+                        volunteer.gender = None
+                elif hasattr(volunteer, key):
+                    setattr(volunteer, key, value)
             db.session.commit()
             return volunteer
         except Exception as e:
