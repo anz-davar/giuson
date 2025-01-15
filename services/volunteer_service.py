@@ -2,7 +2,7 @@ from datetime import datetime
 
 from werkzeug.utils import secure_filename
 from flask import current_app
-from models import JobApplication, ApplicationAnswer, Resume, User
+from models import JobApplication, ApplicationAnswer, Resume, User, Interview
 from db import db
 import os
 from models.volunteer import Volunteer
@@ -54,7 +54,7 @@ class VolunteerService:
             volunteer_id=volunteer_id, job_id=job_id).first()
         if not application:
             return None
-
+        Interview.query.filter_by(application_id=application.id).delete()
         db.session.delete(application)
         db.session.commit()
         return application

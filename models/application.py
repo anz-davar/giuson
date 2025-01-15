@@ -20,11 +20,13 @@ class JobApplication(db.Model):
     volunteer_id = db.Column(db.Integer, db.ForeignKey('volunteers.id'), nullable=False)
     status = db.Column(db.Enum(ApplicationStatus), default=ApplicationStatus.PENDING)
     application_date = db.Column(db.DateTime, default=datetime.utcnow)
-    resume = db.relationship('Resume', uselist=False, backref='application')
+    # resume = db.relationship('Resume', uselist=False, backref='application')
+    resume = db.relationship('Resume', back_populates='application', cascade="all, delete-orphan", uselist=False)
 
     # Relationships
     answers = db.relationship('ApplicationAnswer', backref='application', lazy=True)
-    interview = db.relationship('Interview', backref='application', uselist=False)
+    interview = db.relationship('Interview', backref='application', cascade="all, delete-orphan", uselist=False)
+
 
 
 class ApplicationAnswer(db.Model):
