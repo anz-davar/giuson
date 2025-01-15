@@ -1,4 +1,6 @@
-from models import JobApplication, ApplicationAnswer, Resume
+from werkzeug.exceptions import BadRequest
+
+from models import JobApplication, ApplicationAnswer, Resume, User
 from db import db
 import os
 
@@ -46,3 +48,25 @@ class VolunteerService:
     @staticmethod
     def get_user_info(user_id):
         return Volunteer.query.filter_by(user_id=user_id).first()
+
+    @staticmethod
+    def get_volunteer_by_user_id(user_id):
+        user = User.query.get(user_id)
+        if not user or not user.volunteer:
+            return None
+        return user.volunteer
+
+    @staticmethod
+    def update_volunteer_details_by_user_id(user_id, data):
+        volunteer = VolunteerService.get_volunteer_by_user_id(user_id)
+        if not volunteer:
+            raise BadRequest("Volunteer not found")
+
+        for key, value in data.items():
+            if hasattr(volunteer, key):
+                setattr(volunteer, key, value)
+            else:
+                raise BadRequest(f"Invalid field to update: {key}")
+
+        db.session.commit()
+        return volunteer
