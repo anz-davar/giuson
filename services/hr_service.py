@@ -86,13 +86,7 @@ class HRService:
             ).first()
 
             if not application:
-                application = JobApplication(
-                    volunteer_id=volunteer_id,
-                    job_id=job_id
-                )
-                db.session.add(application)
-                db.session.commit()
-                return application
+                abort(404, description="Application Not Found!")
 
             if application.status != 'preferred':
                 abort(400, description="Application must be accepted by commander first")
