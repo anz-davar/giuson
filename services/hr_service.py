@@ -85,10 +85,13 @@ class HRService:
                 job_id=job_id
             ).first()
 
+            print(application.status)
+
             if not application:
                 abort(404, description="Application Not Found!")
-
-            if application.status != 'preferred':
+                
+            applicationStatus = str(application.status)
+            if applicationStatus.strip().lower() != 'preferred':
                 abort(400, description="Application must be accepted by commander first")
 
             if job.vacant_positions <= 0:
@@ -96,7 +99,7 @@ class HRService:
 
             job.vacant_positions -= 1
 
-            application.status = 'hired'
+            application.status = 'HIRED'
 
             db.session.commit()
             return application
