@@ -71,7 +71,7 @@ def get_volunteers():
     # } for v in volunteers]), 200
     payload = [{
         'id': v.id,
-        'fullName': v.user.full_name,
+        'fullName': v.full_name,
         'idNumber': v.national_id,  # Assuming national_id is the same as idNumber
         'dateOfBirth': v.date_of_birth.strftime('%Y-%m-%d') if v.date_of_birth else None,  # Format dateOfBirth
         'age': calculate_age(v.date_of_birth) if v.date_of_birth else None,  # Function to calculate age (optional)

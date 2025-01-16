@@ -51,7 +51,8 @@ def login():
         volunteer = VolunteerService.get_user_info(user_id)
         if volunteer:
             response['user'] = {
-                 'email': volunteer.user.email,
+                'email': volunteer.user.email,
+                'phone': volunteer.user.phone,
                 'id': volunteer.id,
                 'full_name': volunteer.full_name,
                 'national_id': volunteer.national_id,

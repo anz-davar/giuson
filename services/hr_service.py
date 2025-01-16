@@ -80,33 +80,30 @@ class HRService:
     @staticmethod
     def assign_volunteer_to_job(volunteer_id, job_id):
         try:
-            # Check if volunteer and job exist
             volunteer = Volunteer.query.get_or_404(volunteer_id)
             job = Job.query.get_or_404(job_id)
 
-            # Check if there's an existing application
             application = JobApplication.query.filter_by(
                 volunteer_id=volunteer_id,
                 job_id=job_id
             ).first()
 
             if not application:
-                abort(404, description="No application found for this volunteer and job")
+                abort(404, description="Application Not Found!")
 
-            if application.status != 'accepted':
+            if application.status != 'preferred':
                 abort(400, description="Application must be accepted by commander first")
 
             if job.vacant_positions <= 0:
                 abort(400, description="No vacant positions available")
 
-            # Update job vacancy
             job.vacant_positions -= 1
 
-            # Update application status to assigned
-            application.status = 'assigned'
+            application.status = 'hired'
 
             db.session.commit()
             return application
+            
         except Exception as e:
             db.session.rollback()
             raise e
