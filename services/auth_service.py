@@ -23,6 +23,7 @@ class AuthService:
             additional_claims={"role": user.role}  # Adds the 'role' as a custom claim
         )
         return token
+
     @staticmethod
     def create_user(email, password, role, **kwargs):
         try:
@@ -43,6 +44,7 @@ class AuthService:
                         db.session.rollback()
                         return None, "Invalid join_date format. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ or YYYY-MM-DDTHH:MM:SS+HH:MM)"
                 user_profile = Volunteer(user_id=user.id, join_date=join_date, **kwargs)  # Pass join_date explicitly
+
             elif role == "commander":
                 user_profile = Commander(user_id=user.id, **kwargs)
             elif role == "hr":
@@ -56,6 +58,7 @@ class AuthService:
             return user, None
 
         except Exception as e:
+            print(f"Error creating user: {e}")
             db.session.rollback()
             return None, str(e)
 

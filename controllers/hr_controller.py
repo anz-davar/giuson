@@ -32,14 +32,21 @@ def create_volunteer():
 
     try:
         data = request.get_json()
-        volunteer = HRService.create_volunteer(data)
+        volunteer, error = HRService.create_volunteer(data)
+
+        if error:
+            return jsonify({'error': error}), 400
+
+        if not volunteer:
+            return jsonify({'error': 'Failed to create volunteer'}), 400
+
         return jsonify({
             'message': 'Volunteer created successfully',
+            'user_id': volunteer.user_id,
             'volunteer_id': volunteer.id
         }), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 400
-
 
 def calculate_age(born):
     today = date.today()

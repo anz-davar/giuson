@@ -13,7 +13,7 @@ class HRService:
     def create_hr_user(data):
         try:
             # Create base user with HR role
-            user = AuthService.create_user(
+            user,_ = AuthService.create_user(
                 email=data['email'],
                 password=data['password'],
                 role='hr'
@@ -37,33 +37,61 @@ class HRService:
     @staticmethod
     def create_volunteer(data):
         try:
-            # Create base user with volunteer role
-            user = AuthService.create_user(
-                email=data['email'],
-                password=data['password'],
-                role='volunteer'
-            )
-            db.session.add(user)
+            # Check if user already exists
+            email = data.get('email')
+            if User.query.filter_by(email=email).first():
+                return None, f"User with email {email} already exists"
 
-            # Create volunteer profile
-            volunteer = Volunteer(
-                user=user,
-                full_name=data['full_name'],
-                national_id=data['national_id'],
-                age=data.get('age'),
-                address=data.get('address'),
-                phone=data.get('phone'),
-                primary_profession=data.get('primary_profession'),
-                education=data.get('education'),
-                area_of_interest=data.get('area_of_interest'),
-                contact_reference=data.get('contact_reference')
-            )
+            # Prepare user data
+            user_fields = {
+                'email': data['email'],
+                'role': 'volunteer',
+                'phone': data.get('phone'),
+                'full_name': data.get('full_name')
+            }
+
+            # Prepare volunteer data
+            volunteer_fields = {
+                'full_name': data['full_name'],
+                'national_id': data['national_id'],
+                # 'address': data.get('address'),
+                # 'primary_profession': data.get('primary_profession'),
+                # 'education': data.get('education'),
+                # 'area_of_interest': data.get('area_of_interest'),
+                # 'contact_reference': data.get('contact_reference'),
+                # 'profile': data.get('profile'),
+                # 'date_of_birth': data.get('date_of_birth'),
+                # 'gender': data.get('gender'),
+                # 'experience': data.get('experience'),
+                # 'courses': data.get('courses'),
+                # 'languages': data.get('languages'),
+                # 'interests': data.get('interests'),
+                # 'personal_summary': data.get('personal_summary')
+            }
+
+            # Create user
+            user = User(**{k: v for k, v in user_fields.items() if v is not None})
+            user.set_password(data['national_id'])
+            db.session.add(user)
+            db.session.flush()  # Get user.id before creating volunteer
+
+            # Create volunteer with user_id
+            volunteer_fields['user_id'] = user.id
+            volunteer = Volunteer(**{k: v for k, v in volunteer_fields.items() if v is not None})
             db.session.add(volunteer)
-            db.session.commit()
-            return volunteer
+
+            try:
+                db.session.commit()
+                return volunteer, None
+            except Exception as e:
+                db.session.rollback()
+                return None, f"Database error: {str(e)}"
+
         except Exception as e:
+            print(f"Error in create_volunteer: {str(e)}")
             db.session.rollback()
-            raise e
+            return None, str(e)
+
 
     @staticmethod
     def get_all_volunteers():
