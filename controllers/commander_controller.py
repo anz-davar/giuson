@@ -124,7 +124,7 @@ def get_job_applications(job_id):
 
     applications = CommanderService.get_job_applications(job_id, current_user.commander.id)
     return jsonify([{
-        'candidateUserId': app.volunteer.user_id,
+        'candidateUserId': app.volunteer.id,
         'name': app.volunteer.full_name,
         'age': calculate_age(app.volunteer.date_of_birth) if app.volunteer.date_of_birth else None,
         'status': app.status.value
