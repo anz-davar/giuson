@@ -5,6 +5,7 @@ from werkzeug.exceptions import BadRequest
 
 from services.volunteer_service import VolunteerService
 from models import User, Job
+from utils.helpers import calculate_age
 
 volunteer_bp = Blueprint('volunteer', __name__)
 
@@ -59,6 +60,7 @@ def apply_for_job(job_id):
     else:
         return jsonify({'message': 'Method not allowed'}), 405
 
+
 def format_date_of_birth(data):
     if 'date_of_birth' in data and data['date_of_birth']:
         try:
@@ -67,6 +69,7 @@ def format_date_of_birth(data):
         except ValueError as e:
             raise BadRequest('Invalid date format for date_of_birth. Use YYYY-MMM-DD format (e.g., 2000-Nov-11)')
     return data
+
 
 @volunteer_bp.route('/<int:user_id>', methods=['PATCH'])
 @jwt_required()
@@ -79,10 +82,10 @@ def update_volunteer(user_id):
         # Format the date before updating
         formatted_data = format_date_of_birth(data)
         updated_volunteer = VolunteerService.update_volunteer_details_by_user_id(user_id, formatted_data)
-        
+
         if not updated_volunteer:
             return jsonify({'message': 'Volunteer not found'}), 404
-            
+
         return jsonify({
             'id': updated_volunteer.id,
             'full_name': updated_volunteer.full_name,
@@ -111,7 +114,6 @@ def update_volunteer(user_id):
         return jsonify({'message': 'An error occurred: ' + str(e)}), 500
 
 
-
 @volunteer_bp.route('/jobs/<int:job_id>/resume', methods=['POST'])
 @jwt_required()
 def upload_resume(job_id):
@@ -134,10 +136,59 @@ def upload_resume(job_id):
     except Exception as e:
         print(e)
         return jsonify({'message': 'Internal server error'}), 500
-    
+
+
 @volunteer_bp.route('/jobs/<int:job_id>/check-application', methods=['GET'])
 @jwt_required()
 def check_application(job_id):
     current_user = User.query.get(get_jwt_identity())
     already_applied = VolunteerService.check_if_applied(current_user.volunteer.id, job_id)
     return jsonify({'alreadyApplied': already_applied}), 200
+
+
+
+@volunteer_bp.route('/get-profile-details', methods=['GET'])
+@jwt_required()
+def get_profile_details():
+    current_user_id = get_jwt_identity()
+    print(f"User ID from JWT: {current_user_id}")
+
+    try:
+        user = User.query.get(int(current_user_id))
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+
+        if user.role != 'volunteer':
+            return jsonify({'message': 'User is not a volunteer'}), 403
+
+        volunteer = VolunteerService.get_user_info(user.id)
+        if not volunteer:
+            return jsonify({'message': 'Volunteer profile not found'}), 404
+
+        response = {
+            'email': volunteer.user.email,
+            'phone': volunteer.user.phone,
+            'id': volunteer.id,
+            'full_name': volunteer.full_name,
+            'national_id': volunteer.national_id,
+            'address': volunteer.address,
+            'primary_profession': volunteer.primary_profession,
+            'education': volunteer.education,
+            'area_of_interest': volunteer.area_of_interest,
+            'profile': volunteer.profile,
+            'date_of_birth': volunteer.date_of_birth.strftime('%Y-%m-%d') if volunteer.date_of_birth else None,
+            'age': calculate_age(volunteer.date_of_birth) if volunteer.date_of_birth else None,
+            'gender': volunteer.gender.name if volunteer.gender else None,
+            'experience': volunteer.experience,
+            'courses': volunteer.courses,
+            'languages': volunteer.languages,
+            'interests': volunteer.interests,
+            'personal_summary': volunteer.personal_summary,
+            'imageUrl': volunteer.user.image_url
+        }
+
+        return jsonify(response), 200
+
+    except Exception as e:
+        print(f"Error in get_profile_details: {e}") # Print the full error for debugging
+        return jsonify({'message': 'An error occurred'}), 500  # Return a generic error message to the client
