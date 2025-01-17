@@ -9,7 +9,157 @@ from services.commander_service import CommanderService
 from models.user import User
 import io
 
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+import pickle
+from datetime import datetime, timedelta
+import pytz
+
 commander_bp = Blueprint('commander', __name__)
+
+SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'utils',
+                                  'client_secret_575701819091-bu3aitbj73b3c7df63440tga3v8itdn5.apps.googleusercontent.com.json')
+TOKEN_FILE = os.path.join(BASE_DIR, 'utils', 'token.pickle')
+REDIRECT_URI = 'http://localhost:8080/'
+
+
+def get_calendar_service():
+    """Get or create Calendar API service"""
+    creds = None
+
+    # Check if token file exists
+    if os.path.exists(TOKEN_FILE):
+        with open(TOKEN_FILE, 'rb') as token:
+            creds = pickle.load(token)
+
+    # If no valid credentials available, let the user log in
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            if not os.path.exists(CLIENT_SECRET_FILE):
+                raise FileNotFoundError(
+                    f"Client secret file not found at {CLIENT_SECRET_FILE}. "
+                    "Please download it from Google Cloud Console and place it in the config directory."
+                )
+
+            flow = InstalledAppFlow.from_client_secrets_file(
+                CLIENT_SECRET_FILE,
+                SCOPES,
+                redirect_uri=REDIRECT_URI
+            )
+            creds = flow.run_local_server(port=8080)
+
+            # Save the credentials for future use
+            os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
+            with open(TOKEN_FILE, 'wb') as token:
+                pickle.dump(creds, token)
+
+    return build('calendar', 'v3', credentials=creds)
+
+
+@commander_bp.route('/send-interview-invitation', methods=['POST'])
+@jwt_required()
+def invite_interview():
+    """Schedule an interview and send calendar invitations to both candidate and commander"""
+    current_user = User.query.get(get_jwt_identity())
+    if current_user.role != 'commander':
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    try:
+        # Get the calendar service using our configuration
+        service = get_calendar_service()
+
+        data = request.get_json()
+        required_fields = ['candidate_email', 'commander_email', 'job_title', 'interview_time']
+        if not all(field in data for field in required_fields):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Parse the interview time
+        try:
+            interview_time = datetime.fromisoformat(data['interview_time'].replace('Z', '+00:00'))
+        except ValueError:
+            return jsonify({'error': 'Invalid interview time format. Use ISO 8601 format'}), 400
+
+        # Set interview duration
+        interview_end = interview_time + timedelta(hours=1)
+
+        event = {
+            'summary': f'Interview for {data["job_title"]} Position',
+            'location': 'Online',
+            'description': f'''Interview for the position of {data["job_title"]}
+
+        Commander: {data.get("commander_name", "Interview Commander")}
+        Candidate: {data.get("candidate_name", "Candidate")}
+
+        Additional Info: {data.get("additional_info", "")}''',
+            'start': {
+                'dateTime': interview_time.isoformat(),
+                'timeZone': 'Asia/Jerusalem',
+            },
+            'end': {
+                'dateTime': interview_end.isoformat(),
+                'timeZone': 'Asia/Jerusalem',
+            },
+            'attendees': [
+                {
+                    'email': data['commander_email'],
+                    'responseStatus': 'accepted',  # Auto-accept for organizer
+                    'optional': False  # Mark as required attendee
+                },
+                {
+                    'email': data['candidate_email'],
+                    'responseStatus': 'needsAction',
+                    'optional': False  # Mark as required attendee
+                }
+            ],
+            'reminders': {
+                'useDefault': False,
+                'overrides': [
+                    {'method': 'email', 'minutes': 24 * 60},
+                    {'method': 'popup', 'minutes': 30}
+                ]
+            },
+            'guestsCanModify': False,  # Prevents attendees from modifying the event
+            'guestsCanInviteOthers': False,  # Prevents attendees from inviting others
+            'sendNotifications': True  # Explicitly request notifications
+        }
+
+        if data.get('include_meet_link', True):
+            event['conferenceData'] = {
+                'createRequest': {
+                    'requestId': f"interview-{datetime.now().timestamp()}",
+                    'conferenceSolutionKey': {'type': 'hangoutsMeet'}
+                }
+            }
+
+        try:
+            event_result = service.events().insert(
+                calendarId='primary',
+                body=event,
+                conferenceDataVersion=1,
+                sendUpdates='all',  # This ensures all attendees get notifications
+                sendNotifications=True  # Additional parameter to force notifications
+            ).execute()
+
+            return jsonify({
+                'message': 'Interview scheduled successfully',
+                'event_link': event_result.get('htmlLink'),
+                'meeting_link': event_result.get('conferenceData', {}).get('entryPoints', [{}])[0].get('uri', None),
+                'scheduled_time': interview_time.isoformat()
+            }), 201
+
+        except HttpError as error:
+            return jsonify({'error': f'Calendar API error: {str(error)}'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @commander_bp.route('/jobs', methods=['POST'])
