@@ -148,7 +148,7 @@ def update_job_application_status(job_id, volunteer_id):
         return jsonify({"message": str(e)}), 400
 
 
-@commander_bp.route('/jobs/<int:job_id>/volunteers/<int:volunteer_id>/interviews', methods=['POST', 'GET', 'PATCH'])
+@commander_bp.route('/jobs/<int:job_id>/volunteers/<int:volunteer_id>/interviews', methods=['POST', 'GET', 'PATCH', 'DELETE'])
 @jwt_required()
 def interview_management(job_id, volunteer_id):
     current_user = User.query.get(get_jwt_identity())
@@ -194,6 +194,9 @@ def interview_management(job_id, volunteer_id):
                 "automaticMessage": interview.schedule,
                 "status": interview.status
             }), 200
+        elif request.method == 'DELETE':
+            CommanderService.delete_interview(job_id, volunteer_id)
+            return jsonify({'message': 'Interview deleted successfully'}), 200
 
     except BadRequest as e:
         return jsonify({"message": str(e)}), 400

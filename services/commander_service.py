@@ -237,6 +237,21 @@ class CommanderService:
         return interview
 
     @staticmethod
+    def delete_interview(job_id, volunteer_id):
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+        if not application:
+            raise BadRequest('Job application not found')
+        
+        interview = application.interview
+        if not interview:
+            raise BadRequest('Interview not found')
+        
+        db.session.delete(interview)
+        db.session.commit()
+        return {"message": "Interview deleted successfully"}
+
+
+    @staticmethod
     def schedule_interview(application_id, commander_id, interview_data):
         application = JobApplication.query.get_or_404(application_id)
         if application.job.commander_id != commander_id:
