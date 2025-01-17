@@ -9,6 +9,9 @@ from flask_migrate import Migrate
 
 from models import User, Volunteer, Resume, Commander, HR, Job, JobQuestion, JobApplication, ApplicationAnswer, Interview
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)

@@ -23,8 +23,10 @@ commander_bp = Blueprint('commander', __name__)
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'utils',
-                                  'client_secret_575701819091-bu3aitbj73b3c7df63440tga3v8itdn5.apps.googleusercontent.com.json')
+CLIENT_SECRET_FILE = os.getenv("GOOGLE_CLIENT_SECRET")
+if not CLIENT_SECRET_FILE:
+    raise RuntimeError("GOOGLE_CLIENT_SECRET environment variable is not set!")
+
 TOKEN_FILE = os.path.join(BASE_DIR, 'utils', 'token.pickle')
 REDIRECT_URI = 'http://localhost:8080/'
 
