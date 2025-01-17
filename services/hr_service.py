@@ -1,6 +1,6 @@
 # services/hr_service.py
 from datetime import datetime
-
+from random import randint
 from models import User, HR, Volunteer, JobApplication, Job
 from models.volunteer import Gender
 from services.auth_service import AuthService
@@ -37,6 +37,7 @@ class HRService:
     @staticmethod
     def create_volunteer(data):
         try:
+            image_url = f"https://mighty.tools/mockmind-api/content/human/{randint(1, 130)}.jpg"
             # Check if user already exists
             email = data.get('email')
             if User.query.filter_by(email=email).first():
@@ -47,7 +48,8 @@ class HRService:
                 'email': data['email'],
                 'role': 'volunteer',
                 'phone': data.get('phone'),
-                'full_name': data.get('full_name')
+                'full_name': data.get('full_name'),
+                'image_url': image_url
             }
 
             # Prepare volunteer data
