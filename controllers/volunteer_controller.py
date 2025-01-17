@@ -17,7 +17,18 @@ def get_available_jobs():
         'id': job.id,
         'title': job.title,
         'description': job.description,
-        'vacant_positions': job.vacant_positions
+        'vacant_positions': job.vacant_positions,
+        'required_certificates': job.required_certificates,
+        'required_languages': job.required_languages,
+        'additional_info': job.additional_info,
+        'common_questions': job.common_questions,
+        'common_answers': job.common_answers,
+        'experience': job.experience,
+        'education': job.education,
+        'passed_courses': job.passed_courses,
+        'tech_skills': job.tech_skills,
+        'unit': job.unit
+
     } for job in jobs]), 200
 
 
