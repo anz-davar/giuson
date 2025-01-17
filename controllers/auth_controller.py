@@ -69,7 +69,8 @@ def login():
                 'courses': volunteer.courses,
                 'languages': volunteer.languages,
                 'interests': volunteer.interests,
-                'personal_summary': volunteer.personal_summary
+                'personal_summary': volunteer.personal_summary,
+                'imageUrl': volunteer.user.image_url
             }
     elif role == 'hr':
         hr = HRService.get_hr_user_info(user_id)
@@ -77,7 +78,9 @@ def login():
             response['user'] = {
                 'id': hr.id,
                 'full_name': hr.full_name,
-                'email': hr.email
+                'email': hr.email,
+                'imageUrl': hr.image_url
+
             }
     elif role == 'commander':
         commander = CommanderService.get_commander_user_info(user_id)
@@ -85,7 +88,9 @@ def login():
             response['user'] = {
                 'id': commander.id,
                 'full_name': commander.full_name,
-                'email': commander.email
+                'email': commander.email,
+                'imageUrl': commander.image_url
+
             }
     
     return jsonify(response), 200
