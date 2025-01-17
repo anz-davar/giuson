@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CLIENT_SECRET_FILE = os.getenv("GOOGLE_CLIENT_SECRET")
 if not CLIENT_SECRET_FILE:
     raise RuntimeError("GOOGLE_CLIENT_SECRET environment variable is not set!")
-
+CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'utils', CLIENT_SECRET_FILE)
 TOKEN_FILE = os.path.join(BASE_DIR, 'utils', 'token.pickle')
 REDIRECT_URI = 'http://localhost:8080/'
 
