@@ -12,6 +12,8 @@ import csv
 import io
 from werkzeug.exceptions import BadRequest
 
+from models.user import User
+
 
 class CommanderService:
     @staticmethod
@@ -308,3 +310,7 @@ class CommanderService:
             ])
 
         return output.getvalue()
+    
+    @staticmethod
+    def get_commander_user_info(user_id):
+        return User.query.filter_by(id=user_id).first()

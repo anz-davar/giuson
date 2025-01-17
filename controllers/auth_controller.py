@@ -2,6 +2,7 @@ from datetime import date
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from services.auth_service import AuthService
+from services.commander_service import CommanderService
 from services.hr_service import HRService
 from services.volunteer_service import VolunteerService
 
@@ -75,6 +76,16 @@ def login():
         if hr:
             response['user'] = {
                 'id': hr.id,
+                'full_name': hr.full_name,
+                'email': hr.email
+            }
+    elif role == 'commander':
+        commander = CommanderService.get_commander_user_info(user_id)
+        if commander:
+            response['user'] = {
+                'id': commander.id,
+                'full_name': commander.full_name,
+                'email': commander.email
             }
     
     return jsonify(response), 200
