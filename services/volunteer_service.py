@@ -109,8 +109,8 @@ class VolunteerService:
         return user.volunteer
 
     @staticmethod
-    def update_volunteer_details_by_user_id(user_id, data):
-        volunteer = VolunteerService.get_volunteer_by_user_id(user_id)
+    def update_volunteer_details(volunteer_id, data):
+        volunteer = Volunteer.query.get(volunteer_id)
         if not volunteer:
             raise BadRequest("Volunteer not found")
 
@@ -119,7 +119,7 @@ class VolunteerService:
         volunteer_data = {}
         user_data = {}
 
-        if 'date_of_birth' in data:
+        if 'date_of_birth' in data and data['date_of_birth']:
             try:
                 date_str = data['date_of_birth']
                 date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ').date()
@@ -127,6 +127,8 @@ class VolunteerService:
             except ValueError:
                 raise BadRequest(
                     "Invalid date format for date_of_birth. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ).")
+        else:
+            del data['date_of_birth']
 
         for key, value in data.items():
             if hasattr(volunteer, key):

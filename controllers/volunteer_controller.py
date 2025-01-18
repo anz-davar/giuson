@@ -71,17 +71,20 @@ def format_date_of_birth(data):
     return data
 
 
-@volunteer_bp.route('/<int:user_id>', methods=['PATCH'])
+@volunteer_bp.route('/<int:volunteer_id>', methods=['PATCH'])
 @jwt_required()
-def update_volunteer(user_id):
+def update_volunteer(volunteer_id):
     current_user = User.query.get(get_jwt_identity())
-    if current_user.id != user_id:
+
+    if current_user.volunteer.id != volunteer_id:
         return jsonify({'message': 'Unauthorized'}), 403
     try:
         data = request.get_json()
+
         # Format the date before updating
         formatted_data = format_date_of_birth(data)
-        updated_volunteer = VolunteerService.update_volunteer_details_by_user_id(user_id, formatted_data)
+
+        updated_volunteer = VolunteerService.update_volunteer_details(volunteer_id, formatted_data)
 
         if not updated_volunteer:
             return jsonify({'message': 'Volunteer not found'}), 404
