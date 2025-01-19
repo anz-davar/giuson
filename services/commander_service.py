@@ -83,6 +83,41 @@ class CommanderService:
     def get_job_by_id(job_id):
         return Job.query.get(job_id)
 
+    # @staticmethod
+    # def patch_job(job, data):
+    #     data = {k.lower(): v for k, v in data.items()}
+    #
+    #     field_mapping = {
+    #         'name': 'title',
+    #         'description': 'description',
+    #         'positions': 'vacant_positions',
+    #         'category': 'category',
+    #         'unit': 'unit',
+    #         'address': 'address',
+    #         'openbase': 'is_open_base',
+    #         'additionalinfo': 'additional_info',
+    #         'questions': 'questions',  # Added questions mapping
+    #         'workexperience': 'experience',
+    #         'education': 'education',
+    #         'passedcourses': 'passed_courses',
+    #         'techskills': 'tech_skills',
+    #         'status': 'status'
+    #     }
+    #     print(data)
+    #     for frontend_key, model_field in field_mapping.items():
+    #         if frontend_key in data:
+    #             print(frontend_key, model_field)
+    #             value = data[frontend_key]
+    #
+    #             if model_field == 'status':
+    #                 try:
+    #                     value = JobStatus(value)
+    #                 except ValueError:
+    #                     raise BadRequest(f"Invalid status value: {value}")
+    #             setattr(job, model_field, value)
+    #
+    #     db.session.commit()
+    #     return job
     @staticmethod
     def patch_job(job, data):
         data = {k.lower(): v for k, v in data.items()}
@@ -96,18 +131,16 @@ class CommanderService:
             'address': 'address',
             'openbase': 'is_open_base',
             'additionalinfo': 'additional_info',
-            'questions': 'common_questions',
-            'answers': 'common_answers',
+            'questions': 'questions',
             'workexperience': 'experience',
             'education': 'education',
             'passedcourses': 'passed_courses',
             'techskills': 'tech_skills',
             'status': 'status'
         }
-        print(data)
+
         for frontend_key, model_field in field_mapping.items():
             if frontend_key in data:
-                print(frontend_key, model_field)
                 value = data[frontend_key]
 
                 if model_field == 'status':
@@ -115,11 +148,39 @@ class CommanderService:
                         value = JobStatus(value)
                     except ValueError:
                         raise BadRequest(f"Invalid status value: {value}")
+                elif model_field == 'questions':
+                    existing_questions = {q.id: q for q in job.questions}
+
+                    # Update or create questions
+                    for question_data in value:
+                        question_id = question_data.get('id')
+
+                        if question_id and question_id in existing_questions:
+                            # Update existing question
+                            question = existing_questions[question_id]
+                            question.question_text = question_data.get('question_text', question.question_text)
+                            question.answer_text = question_data.get('answer_text', question.answer_text)
+                            # Remove from existing_questions dict to track which ones to keep
+                            existing_questions.pop(question_id)
+                        else:
+                            # Create new question
+                            new_question = JobQuestion(
+                                job_id=job.id,
+                                question_text=question_data.get('question_text'),
+                                answer_text=question_data.get('answer_text')
+                            )
+                            db.session.add(new_question)
+
+                    # Delete questions that weren't in the update
+                    for question in existing_questions.values():
+                        db.session.delete(question)
+
+                    continue  # Skip the setattr for questions
+
                 setattr(job, model_field, value)
 
         db.session.commit()
         return job
-
     @staticmethod
     def get_volunteer_by_id(volunteer_id):
         return Volunteer.query.get_or_404(volunteer_id)

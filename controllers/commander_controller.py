@@ -199,8 +199,14 @@ def get_jobs():
         'closedBase': not job.is_open_base,
         'jobDescription': job.description,
         'additionalInfo': job.additional_info,
-        'commonQuestions': job.common_questions,
-        'commonAnswers': job.common_answers,
+        'questions': [{
+            'id': question.id,
+            'job_id': question.job_id,
+            'question_text': question.question_text,
+            'answer_text': question.answer_text
+        } for question in job.questions] if job.questions else [],
+        # 'commonQuestions': job.common_questions,
+        # 'commonAnswers': job.common_answers,
         'education': job.education,
         'techSkills': job.tech_skills,
         'workExperience': job.experience,
@@ -241,8 +247,12 @@ def patch_job_route(job_id):
         'closedBase': not updated_job.is_open_base,
         'jobDescription': updated_job.description,
         'additionalInfo': updated_job.additional_info,
-        'commonQuestions': updated_job.common_questions,
-        'commonAnswers': updated_job.common_answers,
+        'questions': [{
+            'id': question.id,
+            'job_id': question.job_id,
+            'question_text': question.question_text,
+            'answer_text': question.answer_text
+        } for question in job.questions] if job.questions else [],
         'education': updated_job.education,
         'techSkills': updated_job.tech_skills,
         'workExperience': updated_job.experience,
