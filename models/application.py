@@ -9,6 +9,8 @@ class ApplicationStatus(enum.Enum):
     PREFERRED = "preferred"
     REJECTED = "rejected"
     HIRED = "hired"
+    PREFERRED_FINAL = "preferred_final"
+
     def __str__(self):
         return self.value
 
@@ -26,7 +28,6 @@ class JobApplication(db.Model):
     # Relationships
     answers = db.relationship('ApplicationAnswer', backref='application', lazy=True)
     interview = db.relationship('Interview', backref='application', cascade="all, delete-orphan", uselist=False)
-
 
 
 class ApplicationAnswer(db.Model):
