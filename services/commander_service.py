@@ -241,7 +241,7 @@ class CommanderService:
     @staticmethod
     def create_interview(job_id, user_id, data):
         user = User.query.get(user_id)
-        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user.volunteer.id).first()
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user_id).first()
         if not application:
             raise BadRequest('Job application not found')
 
@@ -268,7 +268,7 @@ class CommanderService:
     @staticmethod
     def get_interview(job_id, user_id):
         user = User.query.get(user_id)
-        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user.volunteer.id).first()
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user_id).first()
         if not application:
             return None
         return application.interview
@@ -276,7 +276,7 @@ class CommanderService:
     @staticmethod
     def patch_interview(job_id, user_id, data):
         user = User.query.get(user_id)
-        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user.volunteer.id).first()
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user_id).first()
 
         # application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
         if not application:
@@ -309,7 +309,7 @@ class CommanderService:
     @staticmethod
     def delete_interview(job_id, user_id):
         user = User.query.get(user_id)
-        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user.volunteer.id).first()
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user_id).first()
 
         # application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
         if not application:
