@@ -279,7 +279,8 @@ def get_job_applications(job_id):
         'candidateUserId': app.volunteer.id,
         'name': app.volunteer.full_name,
         'age': calculate_age(app.volunteer.date_of_birth) if app.volunteer.date_of_birth else None,
-        'status': app.status.value
+        'status': app.status.value,
+        'imageUrl': app.volunteer.user.image_url
     } for app in applications]), 200
 
 
