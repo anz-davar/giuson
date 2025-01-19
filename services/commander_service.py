@@ -52,8 +52,8 @@ class CommanderService:
             address=data.get('address'),
             is_open_base=data.get('openBase', True),
             additional_info=data.get('additionalInfo'),
-            common_questions=data.get('questions'),
-            common_answers=data.get('answers'),
+            # common_questions=data.get('questions'),
+            # common_answers=data.get('answers'),
             experience=data.get('workExperience'),
             education=data.get('education'),
             passed_courses=data.get('passedCourses'),
@@ -63,13 +63,14 @@ class CommanderService:
         db.session.add(job)
 
         # Add questions TODO maybe return later multiple qustions and answers
-        # for question_data in data.get('questions', []):
-        #     question = JobQuestion(
-        #         job=job,
-        #         question_text=question_data['text'],
-        #         required=question_data.get('required', True)
-        #     )
-        #     db.session.add(question)
+        for question_data in data.get('questions', []):
+            question = JobQuestion(
+                job=job,
+                question_text=question_data['question_text'],
+                answer_text=question_data['answer_text'],
+                # required=question_data.get('required', True)
+            )
+            db.session.add(question)
 
         db.session.commit()
         return job
@@ -177,8 +178,9 @@ class CommanderService:
         return application
 
     @staticmethod
-    def create_interview(job_id, volunteer_id, data):
-        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+    def create_interview(job_id, user_id, data):
+        user = User.query.get(user_id)
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user.volunteer.id).first()
         if not application:
             raise BadRequest('Job application not found')
 
@@ -186,7 +188,8 @@ class CommanderService:
         scheduled_date = None  # Default to None if no date is provided
         if scheduled_date_str:
             try:
-                scheduled_date = datetime.fromisoformat(scheduled_date_str)  # convert to datetime
+                # scheduled_date = datetime.fromisoformat(scheduled_date_str)  # convert to datetime
+                scheduled_date = datetime.fromisoformat(scheduled_date_str.replace('Z', '+00:00'))  # convert to datetime
             except ValueError:
                 raise BadRequest("Invalid date format. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS).")
 
@@ -202,15 +205,19 @@ class CommanderService:
         return interview
 
     @staticmethod
-    def get_interview(job_id, volunteer_id):
-        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+    def get_interview(job_id, user_id):
+        user = User.query.get(user_id)
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user.volunteer.id).first()
         if not application:
             return None
         return application.interview
 
     @staticmethod
-    def patch_interview(job_id, volunteer_id, data):
-        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+    def patch_interview(job_id, user_id, data):
+        user = User.query.get(user_id)
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user.volunteer.id).first()
+
+        # application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
         if not application:
             raise BadRequest('Job application not found')
         interview = application.interview
@@ -239,8 +246,11 @@ class CommanderService:
         return interview
 
     @staticmethod
-    def delete_interview(job_id, volunteer_id):
-        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
+    def delete_interview(job_id, user_id):
+        user = User.query.get(user_id)
+        application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=user.volunteer.id).first()
+
+        # application = JobApplication.query.filter_by(job_id=job_id, volunteer_id=volunteer_id).first()
         if not application:
             raise BadRequest('Job application not found')
         

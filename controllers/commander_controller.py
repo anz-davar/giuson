@@ -301,9 +301,9 @@ def update_job_application_status(job_id, volunteer_id):
         return jsonify({"message": str(e)}), 400
 
 
-@commander_bp.route('/jobs/<int:job_id>/volunteers/<int:volunteer_id>/interviews', methods=['POST', 'GET', 'PATCH', 'DELETE'])
+@commander_bp.route('/jobs/<int:job_id>/volunteers/<int:user_id>/interviews', methods=['POST', 'GET', 'PATCH', 'DELETE'])
 @jwt_required()
-def interview_management(job_id, volunteer_id):
+def interview_management(job_id, user_id):
     current_user = User.query.get(get_jwt_identity())
     if current_user.role != 'commander':
         return jsonify({'message': 'Unauthorized'}), 403
@@ -311,9 +311,9 @@ def interview_management(job_id, volunteer_id):
     try:
         if request.method == 'POST':
             data = request.get_json()
-            interview = CommanderService.create_interview(job_id, volunteer_id, data)
+            interview = CommanderService.create_interview(job_id, user_id, data)
             return jsonify({'message': 'Interview created successfully', 'interview': {
-                "candidateId": str(volunteer_id),
+                "candidateId": str(user_id),
                 "jobId": str(job_id),
                 "interviewNotes": interview.general_info,
                 "interviewDate": interview.scheduled_date.isoformat() if interview.scheduled_date else None,
@@ -322,11 +322,11 @@ def interview_management(job_id, volunteer_id):
             }}), 201
 
         elif request.method == 'GET':
-            interview = CommanderService.get_interview(job_id, volunteer_id)
+            interview = CommanderService.get_interview(job_id, user_id)
             if not interview:
                 return jsonify({'message': 'Interview not found'}), 404
             return jsonify({
-                "candidateId": str(volunteer_id),
+                "candidateId": str(user_id),
                 "jobId": str(job_id),
                 "interviewNotes": interview.general_info,
                 "interviewDate": interview.scheduled_date.isoformat() if interview.scheduled_date else None,
@@ -336,11 +336,11 @@ def interview_management(job_id, volunteer_id):
 
         elif request.method == 'PATCH':
             data = request.get_json()
-            interview = CommanderService.patch_interview(job_id, volunteer_id, data)
+            interview = CommanderService.patch_interview(job_id, user_id, data)
             if not interview:
                 return jsonify({'message': 'Interview not found'}), 404
             return jsonify({
-                "candidateId": str(volunteer_id),
+                "candidateId": str(user_id),
                 "jobId": str(job_id),
                 "interviewNotes": interview.general_info,
                 "interviewDate": interview.scheduled_date.isoformat() if interview.scheduled_date else None,
@@ -348,7 +348,7 @@ def interview_management(job_id, volunteer_id):
                 "status": interview.status
             }), 200
         elif request.method == 'DELETE':
-            CommanderService.delete_interview(job_id, volunteer_id)
+            CommanderService.delete_interview(job_id, user_id)
             return jsonify({'message': 'Interview deleted successfully'}), 200
 
     except BadRequest as e:

@@ -49,4 +49,4 @@ class JobQuestion(db.Model):
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False)
     question_text = db.Column(db.Text, nullable=False)
     answer_text = db.Column(db.Text, nullable=False)
-    required = db.Column(db.Boolean, default=True)
+    # required = db.Column(db.Boolean, default=True)
