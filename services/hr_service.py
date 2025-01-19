@@ -124,7 +124,7 @@ class HRService:
                 abort(404, description="Application Not Found!")
                 
             applicationStatus = str(application.status)
-            if applicationStatus.strip().lower() != 'preferred':
+            if applicationStatus.strip().lower() != 'preferred_final':
                 abort(400, description="Application must be accepted by commander first")
 
             if job.vacant_positions <= 0:
