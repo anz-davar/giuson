@@ -22,8 +22,12 @@ def get_available_jobs():
         'required_certificates': job.required_certificates,
         'required_languages': job.required_languages,
         'additional_info': job.additional_info,
-        'common_questions': job.common_questions,
-        'common_answers': job.common_answers,
+        'questions': [{
+            'id': question.id,
+            'job_id': question.job_id,
+            'question_text': question.question_text,
+            'answer_text': question.answer_text
+        } for question in job.questions] if job.questions else [],
         'experience': job.experience,
         'education': job.education,
         'passed_courses': job.passed_courses,
