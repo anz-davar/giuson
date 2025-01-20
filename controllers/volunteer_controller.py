@@ -32,7 +32,8 @@ def get_available_jobs():
         'education': job.education,
         'passed_courses': job.passed_courses,
         'tech_skills': job.tech_skills,
-        'unit': job.unit
+        'unit': job.unit,
+        'status': job.status.name
 
     } for job in jobs]), 200
 
