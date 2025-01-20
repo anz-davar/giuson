@@ -7,11 +7,13 @@ import os
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from models import User, Volunteer, Resume, Commander, HR, Job, JobQuestion, JobApplication, ApplicationAnswer, Interview
+from models import User, Volunteer, Resume, Commander, HR, Job, JobQuestion, JobApplication, ApplicationAnswer, \
+    Interview
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 def create_app():
     app = Flask(__name__)
@@ -58,8 +60,11 @@ def create_app():
 
     return app
 
+
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
+    # app = create_app()
     with app.app_context():
         try:
             print("Creating all tables...")
