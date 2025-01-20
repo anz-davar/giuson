@@ -7,11 +7,13 @@ import os
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from models import User, Volunteer, Resume, Commander, HR, Job, JobQuestion, JobApplication, ApplicationAnswer, Interview
+from models import User, Volunteer, Resume, Commander, HR, Job, JobQuestion, JobApplication, ApplicationAnswer, \
+    Interview
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 def create_app():
     app = Flask(__name__)
@@ -26,7 +28,9 @@ def create_app():
 
     jwt = JWTManager(app)
     # CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
-    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:4200","http://localhost:63342"]}}, supports_credentials=True)
+    CORS(app, resources={
+        r"/api/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:63342",'https://angularproject-l1sw.onrender.com']}},
+         supports_credentials=True)
 
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
@@ -58,8 +62,11 @@ def create_app():
 
     return app
 
+
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
+    # app = create_app()
     with app.app_context():
         try:
             print("Creating all tables...")
