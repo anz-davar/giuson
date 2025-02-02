@@ -27,7 +27,7 @@ CLIENT_SECRET_FILE = os.getenv("GOOGLE_CLIENT_SECRET")
 if not CLIENT_SECRET_FILE:
     raise RuntimeError("GOOGLE_CLIENT_SECRET environment variable is not set!")
 CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'utils', CLIENT_SECRET_FILE)
-TOKEN_FILE = os.path.join(BASE_DIR, 'utils', 'token.pickle')
+TOKEN_FILE = os.path.join(BASE_DIR, 'utils', 'token1.pickle')
 REDIRECT_URI = 'http://localhost:8080/'
 
 
@@ -338,6 +338,7 @@ def interview_management(job_id, user_id):
             return jsonify({
                 "candidateId": str(user_id),
                 "jobId": str(job_id),
+                'applicationId':interview.application_id,
                 "interviewNotes": interview.general_info,
                 "interviewDate": interview.scheduled_date.isoformat() if interview.scheduled_date else None,
                 "automaticMessage": interview.schedule,

@@ -11,7 +11,6 @@ from flask import abort
 import csv
 import io
 from werkzeug.exceptions import BadRequest
-
 from models.user import User
 
 
@@ -31,17 +30,7 @@ class CommanderService:
 
     @staticmethod
     def create_job(commander_id, data):
-        # job = Job(
-        #     commander_id=commander_id,
-        #     title=data['title'],
-        #     description=data['description'],
-        #     vacant_positions=data.get('vacant_positions', 1),
-        #     education_requirement=data.get('education_requirement'),
-        #     required_certificates=data.get('required_certificates'),
-        #     required_languages=data.get('required_languages'),
-        #     hourly_salary=data.get('hourly_salary'),
-        #     weekly_salary_cap=data.get('weekly_salary_cap')
-        # )
+
         job = Job(
             commander_id=commander_id,
             title=data['name'],  # Map name to title
@@ -52,8 +41,6 @@ class CommanderService:
             address=data.get('address'),
             is_open_base=data.get('openBase', True),
             additional_info=data.get('additionalInfo'),
-            # common_questions=data.get('questions'),
-            # common_answers=data.get('answers'),
             experience=data.get('workExperience'),
             education=data.get('education'),
             passed_courses=data.get('passedCourses'),
@@ -62,7 +49,6 @@ class CommanderService:
 
         db.session.add(job)
 
-        # Add questions TODO maybe return later multiple qustions and answers
         for question_data in data.get('questions', []):
             question = JobQuestion(
                 job=job,

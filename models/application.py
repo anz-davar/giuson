@@ -29,6 +29,11 @@ class JobApplication(db.Model):
     answers = db.relationship('ApplicationAnswer', backref='application', lazy=True)
     interview = db.relationship('Interview', backref='application', cascade="all, delete-orphan", uselist=False)
 
+    def __str__(self):
+        return f"<JobApplication(id={self.id}, job_id={self.job_id}, volunteer_id={self.volunteer_id}, status={self.status.value}, application_date={self.application_date})>"
+
+    def __repr__(self):
+        return self.__str__()
 
 class ApplicationAnswer(db.Model):
     __tablename__ = 'application_answers'

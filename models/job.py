@@ -17,11 +17,9 @@ class Job(db.Model):
     vacant_positions = db.Column(db.Integer, default=1)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    # education_requirement = db.Column(db.String(100))
     required_certificates = db.Column(db.String(200))
     required_languages = db.Column(db.String(200))
-    # hourly_salary = db.Column(db.Float)
-    # weekly_salary_cap = db.Column(db.Float)
+
 
     #added columns
     status = db.Column(db.Enum(JobStatus), default=JobStatus.OPEN) #Status as enum
