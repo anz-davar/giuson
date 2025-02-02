@@ -134,6 +134,9 @@ class HRService:
 
             application.status = 'HIRED'
 
+            if job.vacant_positions == 0:
+                job.status = 'CLOSED'
+
             db.session.commit()
             return application
             
