@@ -28,19 +28,19 @@ def create_app():
 
     jwt = JWTManager(app)
     # CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}}, supports_credentials=True)  # Important!
+    # CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}}, supports_credentials=True)  # Important!
 
-    # CORS(app, resources={
-    #     r"/api/*": {"origins": ["http://localhost:4200",
-    #                             "http://192.168.255.254:4200",
-    #                             'http://192.168.70.254:4200',
-    #                             "http://192.168.70.254:4200",
-    #                             "http://127.0.0.1:4200", "http://localhost:63342",'https://angularproject-l1sw.onrender.com'],
-                    # "methods": ["POST", "GET", "OPTIONS", "PUT", "DELETE"],
-                    # "allow_headers": ["Content-Type", "Authorization","Access-Control-Allow-Credentials"],
-                    # "supports_credentials": True
-                    # }},
-         # supports_credentials=True)
+    CORS(app, resources={
+        r"/api/*": {"origins": ["http://localhost:4200",
+                                "http://192.168.255.254:4200",
+                                'http://192.168.70.254:4200',
+                                "http://192.168.70.254:4200",
+                                "http://127.0.0.1:4200", "http://localhost:63342",'https://angularproject-l1sw.onrender.com'],
+                    "methods": ["POST", "GET", "OPTIONS", "PUT", "DELETE"],
+                    "allow_headers": ["Content-Type", "Authorization","Access-Control-Allow-Credentials"],
+                    "supports_credentials": True
+                    }},
+         supports_credentials=True)
 
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
