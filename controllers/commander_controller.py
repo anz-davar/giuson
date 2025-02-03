@@ -81,12 +81,15 @@ def invite_interview():
         data = request.get_json()
         required_fields = ['candidate_email', 'commander_email', 'job_title', 'interview_time']
         if not all(field in data for field in required_fields):
+            print({'error': 'Missing required fields'})
             return jsonify({'error': 'Missing required fields'}), 400
 
         # Parse the interview time
         try:
-            interview_time = datetime.fromisoformat(data['interview_time'].replace('Z', '+00:00'))
+            interview_time = datetime.fromisoformat(data['interview_time'].replace('Z', ''))
+            # interview_time = datetime.fromisoformat(data['interview_time'].replace('Z', '+00:00'))
         except ValueError:
+            print({'error': 'Invalid interview time format. Use ISO 8601 format'})
             return jsonify({'error': 'Invalid interview time format. Use ISO 8601 format'}), 400
 
         # Set interview duration
@@ -158,9 +161,13 @@ def invite_interview():
             }), 201
 
         except HttpError as error:
+            print(str(error))
+            print(str(error))
             return jsonify({'error': f'Calendar API error: {str(error)}'}), 500
 
     except Exception as e:
+        print(str(e))
+        print(str(e))
         return jsonify({'error': str(e)}), 500
 
 
