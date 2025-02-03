@@ -279,7 +279,9 @@ class CommanderService:
             scheduled_date = None
             if scheduled_date_str:
                 try:
+                    scheduled_date_str = scheduled_date_str.replace('.000Z', '')
                     scheduled_date = datetime.fromisoformat(scheduled_date_str)
+                    # scheduled_date = datetime.fromisoformat(scheduled_date_str)
                 except ValueError:
                     raise BadRequest("Invalid date format. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS).")
             interview.scheduled_date = scheduled_date
