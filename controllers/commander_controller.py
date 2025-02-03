@@ -10,7 +10,7 @@ from models.user import User
 import io
 
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import InstalledAppFlow, Flow
 
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
@@ -32,8 +32,46 @@ TOKEN_FILE = os.path.join(BASE_DIR, 'utils', 'token1.pickle')
 REDIRECT_URI = 'http://localhost:8080/'
 
 
+# def get_calendar_service():
+#     """Get or create Calendar API service"""
+#     creds = None
+#
+#     # Check if token file exists
+#     if os.path.exists(TOKEN_FILE):
+#         with open(TOKEN_FILE, 'rb') as token:
+#             creds = pickle.load(token)
+#
+#     # If no valid credentials available, let the user log in
+#     if not creds or not creds.valid:
+#         if creds and creds.expired and creds.refresh_token:
+#             creds.refresh(Request())
+#         else:
+#             if not os.path.exists(CLIENT_SECRET_FILE):
+#                 raise FileNotFoundError(
+#                     f"Client secret file not found at {CLIENT_SECRET_FILE}. "
+#                     "Please download it from Google Cloud Console and place it in the config directory."
+#                 )
+#
+#             flow = InstalledAppFlow.from_client_secrets_file(
+#                 CLIENT_SECRET_FILE,
+#                 SCOPES,
+#                 redirect_uri=REDIRECT_URI
+#             )
+#             creds = flow.run_local_server(port=8080)
+#
+#             # Save the credentials for future use
+#             os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
+#             with open(TOKEN_FILE, 'wb') as token:
+#                 pickle.dump(creds, token)
+#
+#     return build('calendar', 'v3', credentials=creds)
 def get_calendar_service():
-    """Get or create Calendar API service"""
+    """Get or create Calendar API service for server-side authentication"""
+    TOKEN_FILE = os.path.join(BASE_DIR, 'utils', 'token1.pickle')
+    CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'utils', 'client_secret.json')
+    SCOPES = ['https://www.googleapis.com/auth/calendar']
+    REDIRECT_URI = 'http://localhost:8080/'  # Or your actual redirect URI
+
     creds = None
 
     # Check if token file exists
@@ -41,24 +79,37 @@ def get_calendar_service():
         with open(TOKEN_FILE, 'rb') as token:
             creds = pickle.load(token)
 
-    # If no valid credentials available, let the user log in
+    # If no valid credentials available, go through authorization flow
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            if not os.path.exists(CLIENT_SECRET_FILE):
-                raise FileNotFoundError(
-                    f"Client secret file not found at {CLIENT_SECRET_FILE}. "
-                    "Please download it from Google Cloud Console and place it in the config directory."
-                )
-
-            flow = InstalledAppFlow.from_client_secrets_file(
+            # Create the flow
+            flow = Flow.from_client_secrets_file(
                 CLIENT_SECRET_FILE,
-                SCOPES,
+                scopes=SCOPES,
                 redirect_uri=REDIRECT_URI
             )
-            creds = flow.run_local_server(port=0)
-            # creds = flow.run_local_server(port=8080)
+
+            # Generate authorization URL
+            authorization_url, state = flow.authorization_url(
+                # Enable offline access so that you can refresh an access token without
+                # re-prompting the user for permission. Recommended for web server apps.
+                access_type='offline',
+                # Enable incremental authorization. Recommended as a best practice.
+                include_granted_scopes='true'
+            )
+
+            print("Authorization URL:", authorization_url)
+            print("Please visit this URL in your browser and authorize the application.")
+            print("Then enter the authorization code from the redirect URL.")
+
+            # Manually input the full redirect URL
+            authorization_response = input("Enter the FULL redirect URL: ")
+
+            # Fetch the token
+            flow.fetch_token(authorization_response=authorization_response)
+            creds = flow.credentials
 
             # Save the credentials for future use
             os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
@@ -66,7 +117,6 @@ def get_calendar_service():
                 pickle.dump(creds, token)
 
     return build('calendar', 'v3', credentials=creds)
-
 
 @commander_bp.route('/send-interview-invitation', methods=['POST'])
 @jwt_required()

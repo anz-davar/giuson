@@ -28,9 +28,19 @@ def create_app():
 
     jwt = JWTManager(app)
     # CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
-    CORS(app, resources={
-        r"/api/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:63342",'https://angularproject-l1sw.onrender.com']}},
-         supports_credentials=True)
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}}, supports_credentials=True)  # Important!
+
+    # CORS(app, resources={
+    #     r"/api/*": {"origins": ["http://localhost:4200",
+    #                             "http://192.168.255.254:4200",
+    #                             'http://192.168.70.254:4200',
+    #                             "http://192.168.70.254:4200",
+    #                             "http://127.0.0.1:4200", "http://localhost:63342",'https://angularproject-l1sw.onrender.com'],
+                    # "methods": ["POST", "GET", "OPTIONS", "PUT", "DELETE"],
+                    # "allow_headers": ["Content-Type", "Authorization","Access-Control-Allow-Credentials"],
+                    # "supports_credentials": True
+                    # }},
+         # supports_credentials=True)
 
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
@@ -74,4 +84,5 @@ if __name__ == '__main__':
             print("Tables created successfully!")
         except Exception as e:
             print(f"Error creating tables: {e}")
-    app.run(debug=True)
+    # app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
