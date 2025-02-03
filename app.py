@@ -36,7 +36,7 @@ def create_app():
                                 'http://192.168.70.254:4200',
                                 "http://192.168.70.254:4200",
                                 "http://127.0.0.1:4200", "http://localhost:63342",'https://angularproject-l1sw.onrender.com'],
-                    "methods": ["POST", "GET", "OPTIONS", "PUT", "DELETE"],
+                    "methods": ["POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"],
                     "allow_headers": ["Content-Type", "Authorization","Access-Control-Allow-Credentials"],
                     "supports_credentials": True
                     }},
