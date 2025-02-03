@@ -11,6 +11,7 @@ import io
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
+
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -51,20 +52,13 @@ def get_calendar_service():
                     "Please download it from Google Cloud Console and place it in the config directory."
                 )
 
-            # flow = InstalledAppFlow.from_client_secrets_file(
-            #     CLIENT_SECRET_FILE,
-            #     SCOPES,
-            #     redirect_uri=REDIRECT_URI
-            # )
-            # creds = flow.run_local_server(port=8080)
-
             flow = InstalledAppFlow.from_client_secrets_file(
                 CLIENT_SECRET_FILE,
-                SCOPES
-                # No redirect_uri
+                SCOPES,
+                redirect_uri=REDIRECT_URI
             )
-            creds = flow.run_console()  # Console-based flow, no browser needed
-
+            creds = flow.run_local_server(port=0)
+            # creds = flow.run_local_server(port=8080)
 
             # Save the credentials for future use
             os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
